@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: TakeToday
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/taketoday}
+    username: ${DB_USER:taketoday}
+    password: ${DB_PASSWORD:}
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS:false}
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+server:
+  port: ${PORT:8080}
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        same-site: lax
+        secure: ${COOKIE_SECURE:false}
+app:
+  frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+  mail-from: ${MAIL_FROM:no-reply@taketoday.local}
+  admin-email: ${ADMIN_EMAIL:}
+  admin-password: ${ADMIN_PASSWORD:}
