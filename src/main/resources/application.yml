@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: taketoday
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/taketoday}
+    username: ${DB_USER:taketoday}
+    password: ${DB_PASSWORD:taketoday}
+
+  jpa:
+    # Схему базы создаёт только Flyway (src/main/resources/db/migration), Hibernate лишь проверяет её
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+
+  thymeleaf:
+    cache: false
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+server:
+  port: ${PORT:8080}
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true

@@ -1,0 +1,18 @@
+# Локальная база данных PostgreSQL для разработки.
+# Запуск:  docker compose up -d
+# Остановка: docker compose down
+services:
+  db:
+    image: postgres:16
+    container_name: taketoday-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-taketoday}
+      POSTGRES_USER: ${DB_USER:-taketoday}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-taketoday}
+    ports:
+      - "5432:5432"
+    volumes:
+      - taketoday-db:/var/lib/postgresql/data
+
+volumes:
+  taketoday-db:

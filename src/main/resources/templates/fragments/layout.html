@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' — TakeToday'">TakeToday</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<header th:fragment="header" class="site-header">
+    <div class="container header-row">
+        <a th:href="@{/}" class="logo">Take<span>Today</span></a>
+
+        <nav class="nav">
+            <a th:href="@{/}">Предложения</a>
+
+            <th:block sec:authorize="hasRole('BUYER')">
+                <a th:href="@{/orders}">Мои заказы</a>
+            </th:block>
+
+            <th:block sec:authorize="hasRole('STAFF')">
+                <a th:href="@{/staff}">Моё заведение</a>
+            </th:block>
+
+            <th:block sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin}">Администрирование</a>
+            </th:block>
+
+            <th:block sec:authorize="isAuthenticated()">
+                <a th:href="@{/profile}">Профиль</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button type="submit" class="link-button">Выйти</button>
+                </form>
+            </th:block>
+
+            <th:block sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}" class="btn btn-primary btn-sm">Войти</a>
+            </th:block>
+        </nav>
+    </div>
+</header>
+
+<footer th:fragment="footer" class="site-footer">
+    <div class="container">© TakeToday, Бишкек</div>
+</footer>
+
+</body>
+</html>
