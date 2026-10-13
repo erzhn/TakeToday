@@ -1,96 +1,17 @@
-
-# =========================
-# Spring Boot / Java / Maven
-# =========================
-HELP.md
 target/
-*.class
-*.log
-hs_err_pid*
-replay_pid*
 
-# Maven Wrapper
-.mvn/wrapper/maven-wrapper.jar
-
-# =========================
 # IntelliJ IDEA
-# =========================
 .idea/
-*.iws
 *.iml
 *.ipr
 
-# =========================
-# Spring Tool Suite (STS)
-# =========================
-.apt_generated/
 .classpath
-.factorypath
 .project
 .settings/
-.springBeans
-.sts4-cache/
 
-# =========================
-# NetBeans
-# =========================
-nbproject/private/
-nbbuild/
-nbdist/
-.nb-gradle/
-build/
-
-# =========================
-# VS Code
-# =========================
-.vscode/
-
-# =========================
-# Frontend / Node.js
-# =========================
-node_modules/
-dist/
-coverage/
-.next/
-.nuxt/
-.cache/
-.vite/
-*.tsbuildinfo
-
-# =========================
-# Environment / Secrets
-# =========================
 .env
-.env.*
-!.env.example
-
-application-local.properties
 application-local.yml
-application-local.yaml
 
-*.pem
-*.key
 
-# =========================
-# OS / Temporary Files
-# =========================
 .DS_Store
 Thumbs.db
-*.tmp
-*.swp
-*.swo
-
-# =========================
-# Docker
-# =========================
-docker-compose.override.yml
-compose.override.yaml
-
-# =========================
-# Keep Maven build directories
-# inside source trees (original rules)
-# =========================
-!**/src/main/**/target/
-!**/src/test/**/target/
-!**/src/main/**/build/
-!**/src/test/**/build/

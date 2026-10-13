@@ -1,0 +1,106 @@
+/* Базовые стили TakeToday. Цвета и размеры — в переменных, чтобы потом подогнать под дизайн из Stitch. */
+:root {
+    --color-primary: #1f7a4d;
+    --color-primary-dark: #17603c;
+    --color-accent: #f28c28;
+    --color-bg: #f7f8f5;
+    --color-surface: #ffffff;
+    --color-text: #1d2420;
+    --color-muted: #6b756f;
+    --color-border: #e2e6e1;
+    --color-error: #c0392b;
+    --radius: 14px;
+    --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.5;
+}
+
+a { color: var(--color-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+/* Шапка */
+.site-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+.header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 64px;
+    flex-wrap: wrap;
+}
+.logo {
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--color-primary);
+}
+.logo span { color: var(--color-accent); }
+.logo:hover { text-decoration: none; }
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.nav a, .link-button { color: var(--color-text); font-size: 0.95rem; }
+.inline { display: inline; margin: 0; }
+.link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+/* Кнопки */
+.btn {
+    display: inline-block;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+}
+.btn-sm { padding: 8px 14px; }
+.btn-primary { background: var(--color-primary); color: #fff !important; }
+.btn-primary:hover { background: var(--color-primary-dark); text-decoration: none; }
+
+/* Главная */
+.hero { padding: 48px 0 24px; }
+.hero h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); margin: 0 0 12px; }
+.hero p { color: var(--color-muted); max-width: 640px; margin: 0; }
+
+.empty-state {
+    background: var(--color-surface);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius);
+    padding: 32px;
+    text-align: center;
+    color: var(--color-muted);
+    margin: 24px 0 48px;
+}
+
+.site-footer {
+    border-top: 1px solid var(--color-border);
+    padding: 24px 0;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+}

@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:taketoday;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
