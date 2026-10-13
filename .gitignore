@@ -1,31 +1,17 @@
-# Сборка
 target/
-!.mvn/wrapper/maven-wrapper.jar
 
 # IntelliJ IDEA
 .idea/
 *.iml
-*.iws
 *.ipr
-out/
 
-# VS Code
-.vscode/
-
-# Eclipse
 .classpath
 .project
 .settings/
-bin/
 
-# Секреты и локальные настройки
 .env
 application-local.yml
 
-# Загруженные фото предложений
-uploads/
 
-# Системные
 .DS_Store
 Thumbs.db
-*.log
