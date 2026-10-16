@@ -15,3 +15,25 @@ application-local.yml
 
 .DS_Store
 Thumbs.db
+
+
+# Java crash logs
+hs_err_pid*.log
+replay_pid*.log
+java_pid*.hprof
+
+# Maven build
+target/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# IntelliJ local settings
+.idea/
+*.iml
+
+# Operating system
+.DS_Store
+Thumbs.db

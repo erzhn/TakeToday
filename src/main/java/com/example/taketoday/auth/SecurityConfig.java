@@ -15,9 +15,10 @@ public class SecurityConfig {
  @Bean SecurityContextRepository contextRepository() { return new HttpSessionSecurityContextRepository(); }
  @Bean SecurityFilterChain security(HttpSecurity http, SecurityContextRepository repository, org.springframework.jdbc.core.JdbcTemplate db) throws Exception {
  return http.addFilterAfter(new SessionGuard(db),org.springframework.security.web.context.SecurityContextHolderFilter.class).cors(c -> {}).securityContext(c -> c.securityContextRepository(repository))
- .authorizeHttpRequests(a -> a.requestMatchers("/api/auth/**", "/api/public/**", "/error").permitAll()
+ .authorizeHttpRequests(a -> a.requestMatchers("/", "/index.html", "/styles.css", "/app.js", "/api/auth/**", "/api/public/**", "/error").permitAll()
  .requestMatchers("/api/customer/**", "/api/orders/**").hasRole("CUSTOMER")
- .requestMatchers("/api/staff/**").hasRole("STAFF").requestMatchers("/api/admin/**").hasRole("ADMIN").anyRequest().authenticated())
+ .requestMatchers("/staff", "/staff/**", "/api/staff/**").hasRole("STAFF")
+ .requestMatchers("/admin", "/admin/**", "/api/admin/**").hasRole("ADMIN").anyRequest().authenticated())
  .exceptionHandling(e -> e.authenticationEntryPoint((q,s,x)->s.sendError(401,"Войдите в учетную запись"))
  .accessDeniedHandler((q,s,x)->s.sendError(403,"Доступ запрещен или устарел защитный токен")))
  .logout(l -> l.logoutUrl("/api/auth/logout").deleteCookies("JSESSIONID").logoutSuccessHandler((q,s,a)->s.setStatus(204))).build();
