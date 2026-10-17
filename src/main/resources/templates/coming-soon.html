@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${title})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('')}"></header>
+
+<!--/* Раздел следующего этапа — см. ComingSoonController */-->
+<main class="container">
+    <section class="error-page">
+        <div class="error-code"><span class="material-symbols-outlined" style="font-size: 56px" th:text="${icon}">schedule</span></div>
+        <h1 th:text="${title}">Мои заказы</h1>
+        <p th:text="${text}">Описание раздела.</p>
+        <p class="muted">Раздел появится на <span th:text="${stage}">этапе 5</span>.</p>
+        <a th:href="@{${back}}" class="btn btn-primary">
+            <span class="material-symbols-outlined">arrow_back</span>Назад
+        </a>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
