@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Админ-панель')}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('overview')}"></aside>
+
+    <main class="admin-main">
+        <div class="admin-top">
+            <div>
+                <h1 class="page-title">Обзор</h1>
+                <p class="page-subtitle">Разделы управления пользователями, предложениями и платежами появятся на этапе 5.</p>
+            </div>
+            <a th:href="@{/profile}" class="user-chip">
+                <span class="avatar" th:text="${headerInfo.initials}">А</span>
+                <span>
+                    <span class="user-chip-name" th:text="${headerInfo.shortName}">Администратор</span><br>
+                    <span class="user-chip-role">Администратор</span>
+                </span>
+            </a>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label"><span class="material-symbols-outlined icon-sm">group</span>Всего пользователей</div>
+                <div class="stat-value" th:text="${usersTotal}">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label"><span class="material-symbols-outlined icon-sm">person</span>Покупателей</div>
+                <div class="stat-value" th:text="${buyersTotal}">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label"><span class="material-symbols-outlined icon-sm">storefront</span>Сотрудников заведений</div>
+                <div class="stat-value" th:text="${staffTotal}">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label"><span class="material-symbols-outlined icon-sm">store</span>Заведений</div>
+                <div class="stat-value accent" th:text="${venuesTotal}">0</div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

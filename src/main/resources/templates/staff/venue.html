@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Сведения о заведении')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('venue')}"></header>
+
+<!--/* Экран 13 «Сведения о заведении» (п. 4.2.2 ТЗ) */-->
+<main class="container page">
+
+    <div th:if="${success}" class="toast toast-soft" role="status">
+        <div class="toast-body">
+            <span class="toast-icon"><span class="material-symbols-outlined">check_circle</span></span>
+            <div>
+                <div class="toast-title" th:text="${success}">Сведения сохранены</div>
+                <div class="toast-text" th:text="${successText}">Обновлённые данные и режим работы уже применены к карточке заведения.</div>
+            </div>
+        </div>
+        <button type="button" class="toast-close" data-dismiss aria-label="Закрыть уведомление">
+            <span class="material-symbols-outlined icon-sm">close</span>
+        </button>
+    </div>
+
+    <th:block th:object="${venueForm}">
+        <div class="toast toast-error" th:if="${#fields.hasAnyErrors()}" role="alert">
+            <div class="toast-body">
+                <span class="toast-icon"><span class="material-symbols-outlined">priority_high</span></span>
+                <div>
+                    <div class="toast-title">Проверьте заполнение</div>
+                    <div class="toast-text">Некоторые поля заполнены неверно — подробности рядом с полями.</div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+
+    <nav class="breadcrumbs" aria-label="Навигационная цепочка">
+        <a th:href="@{/staff}">Кабинет заведения</a>
+        <span class="sep">/</span>
+        <span class="current">Сведения о заведении</span>
+    </nav>
+
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Сведения о заведении</h1>
+            <p class="page-subtitle">Управление общедоступным профилем, контактами и графиком работы заведения
+                для витрины TakeToday в Бишкеке</p>
+        </div>
+        <div class="page-actions">
+            <button type="submit" form="venue-form" class="btn btn-primary" data-once>
+                <span class="material-symbols-outlined">save</span>Сохранить изменения
+            </button>
+        </div>
+    </div>
+
+    <form id="venue-form" th:action="@{/staff/venue}" th:object="${venueForm}" method="post"
+          enctype="multipart/form-data" novalidate>
+
+        <div class="two-col">
+            <!--/* ---------- Основная информация и брендинг ---------- */-->
+            <section class="card card-md card-flex">
+                <div class="card-head plain">
+                    <h2 class="card-title-sm"><span class="dot"></span>Основная информация и брендинг</h2>
+                    <span class="badge badge-green">Активен</span>
+                </div>
+
+                <div class="form-grid">
+                    <div class="logo-upload">
+                        <div class="venue-logo" data-logo-preview>
+                            <img th:if="${logoPath}" th:src="@{'/uploads/' + ${logoPath}}" alt="Логотип заведения">
+                            <span th:unless="${logoPath}" class="material-symbols-outlined">storefront</span>
+                        </div>
+                        <div class="logo-upload-actions">
+                            <div class="logo-upload-buttons">
+                                <label class="btn btn-outline btn-sm file-button">
+                                    Загрузить новый логотип
+                                    <input type="file" name="logo" accept="image/png,image/jpeg" data-logo-input>
+                                </label>
+                                <label class="checkbox" th:if="${logoPath}">
+                                    <input type="checkbox" th:field="*{removeLogo}">Удалить
+                                </label>
+                            </div>
+                            <p class="hint">Рекомендуемый размер: не менее 400×400 px, круглый формат. PNG или JPG до 2 МБ.</p>
+                            <p class="field-error" th:if="${#fields.hasErrors('logo')}" th:errors="*{logo}"></p>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="name"><span>Название заведения <span class="required">*</span></span></label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">storefront</span>
+                            <input type="text" th:field="*{name}" class="input has-icon" maxlength="150"
+                                   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'" required>
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+                        <p class="hint" th:unless="${#fields.hasErrors('name')}">Отображается в каталоге, на карточках наборов и в чеках покупателей.</p>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="category"><span>Категория заведения</span></label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">bakery_dining</span>
+                            <select th:field="*{category}" class="select has-icon">
+                                <option value="">Не выбрано</option>
+                                <option th:each="c : ${categories}" th:value="${c}" th:text="${c.title}">Пекарня и выпечка</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="description">
+                            <span>Краткое описание для покупателей</span>
+                            <span class="field-meta" data-counter-for="description"><span>0</span> / 500 символов</span>
+                        </label>
+                        <textarea th:field="*{description}" class="textarea" rows="4" maxlength="500"
+                                  th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
+                                  placeholder="Чем вы известны, что обычно попадает в наборы"></textarea>
+                        <p class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
+                    </div>
+
+                    <div class="partner-row">
+                        <span><span class="material-symbols-outlined">verified</span>Партнёр проекта TakeToday</span>
+                        <span>Бишкек</span>
+                    </div>
+                </div>
+            </section>
+
+            <!--/* ---------- Контакты и локация ---------- */-->
+            <section class="card card-md">
+                <div class="card-head plain">
+                    <h2 class="card-title-sm"><span class="dot dot-accent"></span>Контакты и локация</h2>
+                    <span class="badge badge-soft-dark">Бишкек</span>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label class="field-label" for="address"><span>Адрес заведения <span class="required">*</span></span></label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">location_on</span>
+                            <input type="text" th:field="*{address}" class="input has-icon" maxlength="300"
+                                   th:classappend="${#fields.hasErrors('address')} ? 'is-invalid'"
+                                   placeholder="г. Бишкек, ул. Киевская, 95" required>
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></p>
+                    </div>
+
+                    <a th:if="${!#strings.isEmpty(venueForm.address)}" class="map-link"
+                       th:href="@{https://2gis.kg/bishkek/search/{q}(q=${venueForm.address})}"
+                       target="_blank" rel="noopener">
+                        <span class="inner"><span class="material-symbols-outlined icon-sm">location_on</span>Проверить адрес в 2ГИС</span>
+                    </a>
+
+                    <div class="field">
+                        <label class="field-label" for="district"><span>Район города</span></label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">map</span>
+                            <select th:field="*{district}" class="select has-icon">
+                                <option value="">Не выбрано</option>
+                                <option th:each="d : ${districts}" th:value="${d}" th:text="${d.title}">Первомайский район</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="phone"><span>Телефон для связи</span></label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">call</span>
+                            <input type="tel" th:field="*{phone}" class="input has-icon" maxlength="30"
+                                   th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'"
+                                   placeholder="+996 555 341 289">
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
+                        <p class="hint" th:unless="${#fields.hasErrors('phone')}">Для оперативного звонка менеджера и подтверждения выдач.</p>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="contactEmail"><span>Электронная почта</span></label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">mail</span>
+                            <input type="email" th:field="*{contactEmail}" class="input has-icon" maxlength="254"
+                                   th:classappend="${#fields.hasErrors('contactEmail')} ? 'is-invalid'"
+                                   placeholder="bakery@mail.kg">
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('contactEmail')}" th:errors="*{contactEmail}"></p>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="instagram"><span>Instagram / Мессенджер</span></label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">alternate_email</span>
+                            <input type="text" th:field="*{instagram}" class="input has-icon" maxlength="100"
+                                   th:classappend="${#fields.hasErrors('instagram')} ? 'is-invalid'"
+                                   placeholder="@tandyr_bakery_bishkek">
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('instagram')}" th:errors="*{instagram}"></p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!--/* ---------- График работы ---------- */-->
+        <section class="card card-md" style="margin-top: 24px">
+            <div class="card-head plain">
+                <div>
+                    <h2 class="card-title-sm"><span class="dot"></span>График работы заведения</h2>
+                    <p class="card-subtitle sm">Укажите фактические часы открытия. Время выдачи наборов задаётся в каждом предложении.</p>
+                </div>
+                <button type="button" class="btn btn-soft btn-sm" data-copy-weekdays>
+                    <span class="material-symbols-outlined icon-sm">sync_alt</span>Применить ко всем будням
+                </button>
+            </div>
+
+            <p class="field-error" th:each="err : ${#fields.errors('workDays')}" th:text="${err}"
+               style="margin-bottom: 8px"></p>
+
+            <table class="schedule">
+                <thead>
+                <tr>
+                    <th scope="col">День недели</th>
+                    <th scope="col">Статус дня</th>
+                    <th scope="col">Часы работы заведения</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="day, st : *{workDays}" data-workday th:attr="data-day=${day.dayOfWeek}">
+                    <td>
+                        <span th:text="${day.dayName}">Понедельник</span>
+                        <input type="hidden" th:field="*{workDays[__${st.index}__].dayOfWeek}">
+                    </td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" th:field="*{workDays[__${st.index}__].working}">
+                            <span class="switch-track"></span>
+                            <span class="switch-label" th:text="${day.working} ? 'Рабочий день' : 'Выходной'">Рабочий день</span>
+                        </label>
+                    </td>
+                    <td>
+                        <div class="time-range">
+                            <label class="sr-only" th:for="${'workDays' + st.index + '.openTime'}">Открытие</label>
+                            <input type="time" class="input"
+                                   th:field="*{workDays[__${st.index}__].openTime}"
+                                   th:classappend="${#fields.hasErrors('workDays[__${st.index}__].openTime')} ? 'is-invalid'">
+                            <span class="dash">—</span>
+                            <label class="sr-only" th:for="${'workDays' + st.index + '.closeTime'}">Закрытие</label>
+                            <input type="time" class="input"
+                                   th:field="*{workDays[__${st.index}__].closeTime}"
+                                   th:classappend="${#fields.hasErrors('workDays[__${st.index}__].closeTime')} ? 'is-invalid'">
+                            <span class="badge badge-red off-note">Выходной день — заказы не принимаются</span>
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('workDays[__${st.index}__].openTime')}"
+                           th:errors="*{workDays[__${st.index}__].openTime}"></p>
+                        <p class="field-error" th:if="${#fields.hasErrors('workDays[__${st.index}__].closeTime')}"
+                           th:errors="*{workDays[__${st.index}__].closeTime}"></p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <p class="hint" style="margin-top: 8px">
+                <span class="material-symbols-outlined icon-sm" style="color: var(--accent)">info</span>
+                В выходные дни новые предложения не публикуются.
+            </p>
+        </section>
+
+        <!--/* ---------- Панель сохранения ---------- */-->
+        <section class="save-bar" style="margin-top: 24px">
+            <div class="save-bar-info">
+                <span class="save-bar-icon"><span class="material-symbols-outlined icon-sm">history</span></span>
+                <span>Последнее обновление: <strong th:text="${updatedLabel}">14 октября 2026, 16:45</strong></span>
+            </div>
+            <div class="page-actions">
+                <a th:href="@{/staff/venue}" class="btn btn-soft">Сбросить изменения</a>
+                <button type="submit" class="btn btn-primary" data-once>Сохранить</button>
+            </div>
+        </section>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: footerBusiness}"></footer>
+</body>
+</html>

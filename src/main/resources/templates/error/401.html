@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Нужно войти')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('')}"></header>
+
+<main class="container">
+    <section class="error-page">
+        <div class="error-code">401</div>
+        <h1>Войдите, чтобы открыть эту страницу</h1>
+        <p>Личный кабинет, кабинет заведения и админ-панель доступны только после входа в учётную запись.</p>
+        <a href="/#login" class="btn btn-primary">
+            <span class="material-symbols-outlined">login</span>Войти
+        </a>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

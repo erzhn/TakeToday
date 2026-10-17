@@ -71,3 +71,6 @@ app:
   admin-email: ${ADMIN_EMAIL:}
   admin-password: ${ADMIN_PASSWORD:}
   frontend-origin: http://localhost:5173
+
+  # Папка для логотипов заведений (раздаётся по адресу /uploads/**)
+  upload-dir: ${UPLOAD_DIR:uploads}

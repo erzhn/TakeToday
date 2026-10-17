@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Профиль')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('profile')}"></header>
+
+<!--/* Экран 6 «Профиль покупателя» (п. 4.2.1 ТЗ) */-->
+<main class="container page">
+    <nav class="breadcrumbs" aria-label="Навигационная цепочка">
+        <a th:href="@{/}">Главная</a>
+        <span class="material-symbols-outlined sep">chevron_right</span>
+        <span>Личный кабинет</span>
+        <span class="material-symbols-outlined sep">chevron_right</span>
+        <span class="current">Профиль и настройки</span>
+    </nav>
+
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Личный кабинет и настройки</h1>
+            <p class="page-subtitle">Управляйте персональными данными и безопасностью аккаунта</p>
+        </div>
+    </div>
+
+    <div class="layout-sidebar">
+        <!--/* ---------- Левая колонка ---------- */-->
+        <aside class="sidebar">
+            <div class="card card-sm identity-card">
+                <div class="identity">
+                    <span class="avatar avatar-lg" th:text="${headerInfo.initials}">АД</span>
+                    <div>
+                        <div class="identity-name" th:text="${headerInfo.name}">Айбек Джумабаев</div>
+                        <div class="identity-meta" th:text="${profileForm.phone != null and !#strings.isEmpty(profileForm.phone)} ? ${profileForm.phone} : ${headerInfo.email}">+996 700 123 456</div>
+                        <span class="badge badge-green" style="margin-top:6px">
+                            <span class="material-symbols-outlined icon-sm icon-fill">verified</span>
+                            <span th:text="${headerInfo.roleTitle}">Покупатель</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="side-menu" aria-label="Разделы профиля">
+                <a href="#personal" class="active">
+                    <span class="item"><span class="material-symbols-outlined">person</span>Личные данные</span>
+                    <span class="material-symbols-outlined chevron">chevron_right</span>
+                </a>
+                <a th:if="${headerInfo.customer}" th:href="@{/orders}">
+                    <span class="item"><span class="material-symbols-outlined">receipt_long</span>Мои заказы</span>
+                </a>
+                <a th:if="${headerInfo.staff}" th:href="@{/staff/venue}">
+                    <span class="item"><span class="material-symbols-outlined">storefront</span>Моё заведение</span>
+                </a>
+                <a href="#password">
+                    <span class="item"><span class="material-symbols-outlined">shield</span>Смена пароля</span>
+                </a>
+                <div class="divider"></div>
+                <form th:action="@{/api/auth/logout}" method="post" data-logout class="inline-form">
+                    <button type="submit" class="danger">
+                        <span class="material-symbols-outlined">logout</span>Выйти из аккаунта
+                    </button>
+                </form>
+            </nav>
+        </aside>
+
+        <!--/* ---------- Правая колонка ---------- */-->
+        <div class="content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+            <!--/* Личные данные */-->
+            <section class="card" id="personal">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title">Личные данные</h2>
+                        <p class="card-subtitle">Основная информация и контактные данные</p>
+                    </div>
+                    <span class="badge badge-soft">Аккаунт активен</span>
+                </div>
+
+                <form th:action="@{/profile}" th:object="${profileForm}" method="post" class="form-grid" novalidate>
+                    <div class="field">
+                        <label class="field-label" for="name">
+                            <span>Имя и фамилия <span class="required">*</span></span>
+                        </label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">badge</span>
+                            <input type="text" id="name" th:field="*{name}" class="input has-icon"
+                                   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
+                                   maxlength="100" autocomplete="name" required>
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Введите имя</p>
+                        <p class="hint" th:unless="${#fields.hasErrors('name')}">Имя видит сотрудник заведения при выдаче заказа.</p>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="email">
+                            <span>Электронная почта</span>
+                            <span class="field-meta"><span class="material-symbols-outlined icon-sm">lock</span>Только чтение</span>
+                        </label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">mail</span>
+                            <input type="email" id="email" th:value="${headerInfo.email}" class="input has-icon" readonly>
+                        </div>
+                        <div class="note">
+                            <span class="material-symbols-outlined">info</span>
+                            <span>Почту нельзя изменить самостоятельно. Если нужна замена, напишите на
+                                <a href="mailto:support@taketoday.kg">support@taketoday.kg</a>.</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="phone"><span>Телефон</span></label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">call</span>
+                            <input type="tel" id="phone" th:field="*{phone}" class="input has-icon"
+                                   th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'"
+                                   placeholder="+996 700 123 456" maxlength="30" autocomplete="tel">
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Телефон в формате +996 700 123 456</p>
+                        <p class="hint" th:unless="${#fields.hasErrors('phone')}">Необязательно. Поможет заведению связаться с вами по заказу.</p>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" data-once>
+                            <span class="material-symbols-outlined">save</span>Сохранить изменения
+                        </button>
+                        <a th:href="@{/profile}" class="btn btn-soft">Отменить</a>
+                    </div>
+                </form>
+            </section>
+
+            <!--/* Смена пароля */-->
+            <section class="card" id="password">
+                <div class="card-head">
+                    <div>
+                        <h2 class="card-title">Смена пароля</h2>
+                        <p class="card-subtitle">Используйте надёжный пароль для защиты аккаунта</p>
+                    </div>
+                    <span class="material-symbols-outlined" style="color: var(--primary)">shield_lock</span>
+                </div>
+
+                <!--/* Значения паролей обратно в поля не подставляем — только ошибки. */-->
+                <form th:action="@{/profile/password}" th:object="${passwordForm}" method="post" class="form-grid" novalidate>
+                    <div class="field">
+                        <label class="field-label" for="currentPassword">
+                            <span>Текущий пароль <span class="required">*</span></span>
+                        </label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">key</span>
+                            <input type="password" id="currentPassword" name="currentPassword"
+                                   class="input has-icon has-action"
+                                   th:classappend="${#fields.hasErrors('currentPassword')} ? 'is-invalid'"
+                                   autocomplete="current-password" required>
+                            <button type="button" class="input-action" data-toggle-password aria-label="Показать пароль">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </button>
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></p>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="newPassword">
+                            <span>Новый пароль <span class="required">*</span></span>
+                        </label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">lock</span>
+                            <input type="password" id="newPassword" name="newPassword"
+                                   class="input has-icon has-action"
+                                   th:classappend="${#fields.hasErrors('newPassword')} ? 'is-invalid'"
+                                   autocomplete="new-password" minlength="10" maxlength="72" required>
+                            <button type="button" class="input-action" data-toggle-password aria-label="Показать пароль">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </button>
+                        </div>
+                        <div class="strength" data-strength-for="newPassword" data-level="0">
+                            <div class="strength-bars"><span></span><span></span><span></span><span></span></div>
+                            <span class="strength-label"></span>
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></p>
+                        <p class="hint" th:unless="${#fields.hasErrors('newPassword')}">От 10 символов. Лучше сочетать буквы, цифры и знаки.</p>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="confirmPassword">
+                            <span>Повторите новый пароль <span class="required">*</span></span>
+                            <span class="field-meta" th:if="${#fields.hasErrors('confirmPassword')}" style="color: var(--error); font-weight: 700">
+                                <span class="material-symbols-outlined icon-sm">error</span>Не совпадает
+                            </span>
+                        </label>
+                        <div class="input-wrap">
+                            <span class="material-symbols-outlined input-icon">lock_reset</span>
+                            <input type="password" id="confirmPassword" name="confirmPassword"
+                                   class="input has-icon has-action"
+                                   th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid'"
+                                   autocomplete="new-password" required>
+                            <button type="button" class="input-action" data-toggle-password aria-label="Показать пароль">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </button>
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></p>
+                    </div>
+
+                    <div class="form-actions spread">
+                        <button type="submit" class="btn btn-soft" data-once>
+                            <span class="material-symbols-outlined">lock_reset</span>Обновить пароль
+                        </button>
+                        <a th:href="@{/forgot-password}">Забыли старый пароль?</a>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
