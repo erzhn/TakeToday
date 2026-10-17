@@ -789,8 +789,9 @@ img { max-width: 100%; display: block; }
     .header-nav.nav-group .nav-link { max-width: none; border-radius: var(--radius-sm); margin: 0; }
     .hide-mobile { display: none !important; }
 
-    .layout-sidebar { grid-template-columns: 1fr; }
-    .sidebar { position: static; }
+    /* minmax(0, 1fr): иначе горизонтальное меню без переносов растягивает колонку шире экрана */
+    .layout-sidebar { grid-template-columns: minmax(0, 1fr); }
+    .sidebar { position: static; min-width: 0; }
     .sidebar .identity-card { display: none; }
     .side-menu { flex-direction: row; overflow-x: auto; }
     .side-menu a, .side-menu button { white-space: nowrap; width: auto; }

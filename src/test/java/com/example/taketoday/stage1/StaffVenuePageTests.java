@@ -158,4 +158,43 @@ class StaffVenuePageTests extends Stage1TestSupport {
         UUID lonely = account("novenue@example.com", "Без заведения", "STAFF");
         mvc.perform(get("/staff/venue").with(as(lonely))).andExpect(status().isForbidden());
     }
+
+    @Test
+    void emailContactFromRegistrationGoesToEmailField() throws Exception {
+        db.update("UPDATE establishments SET contact = ? WHERE owner_id = ?", "tandyr@mail.kg", staff);
+
+        mvc.perform(get("/staff/venue").with(as(staff)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("value=\"tandyr@mail.kg\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Телефон в формате"))));
+
+        // Сохранить можно без телефона — тогда в contact попадает почта
+        mvc.perform(validForm("phone", "", "contactEmail", "tandyr@mail.kg"))
+                .andExpect(redirectedUrl("/staff/venue"));
+        assertThat(venueOf(staff).get("contact")).isEqualTo("tandyr@mail.kg");
+    }
+
+    @Test
+    void phoneOrEmailIsRequired() throws Exception {
+        mvc.perform(validForm("phone", "", "contactEmail", ""))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Укажите телефон или почту для связи")));
+    }
+
+    @Test
+    void registrationHoursShownUntilScheduleSaved() throws Exception {
+        db.update("UPDATE establishments SET working_hours = ? WHERE owner_id = ?", "Пн–Сб, 10:00–20:00", staff);
+
+        mvc.perform(get("/staff").with(as(staff)))
+                .andExpect(content().string(containsString("График: Пн–Сб, 10:00–20:00")));
+        mvc.perform(get("/staff/venue").with(as(staff)))
+                .andExpect(content().string(containsString("При регистрации указано")));
+
+        mvc.perform(validForm()).andExpect(redirectedUrl("/staff/venue"));
+
+        mvc.perform(get("/staff").with(as(staff)))
+                .andExpect(content().string(containsString("График: ежедневно 09:00–21:00")));
+        mvc.perform(get("/staff/venue").with(as(staff)))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("При регистрации указано"))));
+    }
 }

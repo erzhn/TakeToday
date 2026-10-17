@@ -68,6 +68,7 @@ public class StaffController {
 
     private void addFormData(Model model, Establishment venue) {
         model.addAttribute("logoPath", venue.logoPath());
+        model.addAttribute("registrationHours", venue.scheduleSaved() ? null : venue.workingHours());
         model.addAttribute("updatedLabel", venueService.updatedLabel(venue));
         model.addAttribute("categories", VenueCategory.values());
         model.addAttribute("districts", District.values());
