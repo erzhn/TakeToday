@@ -1,50 +1,188 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/*
+  Общие части всех страниц (по макету Figma). Подключение:
+    <head th:replace="~{fragments/layout :: head('Заголовок')}"></head>
+    <header th:replace="~{fragments/layout :: header('profile')}"></header>   — параметр: какой пункт меню активен
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>            — подвал для покупателей
+    <footer th:replace="~{fragments/layout :: footerBusiness}"></footer>    — подвал кабинета заведения
+*/-->
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${title} + ' — TakeToday'">TakeToday</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&family=Space+Grotesk:wght@600;700&family=Tinos:wght@400;700&display=swap">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
     <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/js/app.js}" defer></script>
 </head>
 <body>
 
-<header th:fragment="header" class="site-header">
-    <div class="container header-row">
-        <a th:href="@{/}" class="logo">Take<span>Today</span></a>
+<!--/* ===================== Шапка ===================== */-->
+<header th:fragment="header(active)" class="site-header">
 
-        <nav class="nav">
-            <a th:href="@{/}">Предложения</a>
+    <!--/* ---------- Кабинет заведения (экран 7) ---------- */-->
+    <div class="container header-row"
+         th:if="${headerInfo != null and headerInfo.staff}">
+        <div class="header-left">
+            <a th:href="@{/staff}" class="logo">Take<span>Today</span></a>
+            <span class="pill pill-green hide-mobile">Кабинет заведения</span>
+        </div>
 
-            <th:block sec:authorize="hasRole('BUYER')">
-                <a th:href="@{/orders}">Мои заказы</a>
-            </th:block>
-
-            <th:block sec:authorize="hasRole('STAFF')">
-                <a th:href="@{/staff}">Моё заведение</a>
-            </th:block>
-
-            <th:block sec:authorize="hasRole('ADMIN')">
-                <a th:href="@{/admin}">Администрирование</a>
-            </th:block>
-
-            <th:block sec:authorize="isAuthenticated()">
-                <a th:href="@{/profile}">Профиль</a>
-                <form th:action="@{/logout}" method="post" class="inline">
-                    <button type="submit" class="link-button">Выйти</button>
-                </form>
-            </th:block>
-
-            <th:block sec:authorize="!isAuthenticated()">
-                <a th:href="@{/login}" class="btn btn-primary btn-sm">Войти</a>
-            </th:block>
+        <nav class="nav-group header-nav" aria-label="Кабинет заведения">
+            <a th:href="@{/staff}" class="nav-link" th:classappend="${active == 'staff'} ? 'active'">Мои предложения</a>
+            <a th:href="@{/staff/pickup}" class="nav-link" th:classappend="${active == 'pickup'} ? 'active'">Выдача заказа</a>
+            <a th:href="@{/staff/orders}" class="nav-link" th:classappend="${active == 'orders'} ? 'active'">Заказы</a>
+            <a th:href="@{/staff/venue}" class="nav-link" th:classappend="${active == 'venue'} ? 'active'">Заведение</a>
         </nav>
+
+        <div class="header-right">
+            <a th:href="@{/staff/venue}" class="pill serif hide-mobile hide-tablet" th:if="${headerInfo.establishmentName != null}">
+                <span class="material-symbols-outlined icon-sm">storefront</span>
+                <span th:text="${headerInfo.establishmentName}">Пекарня «Тандыр»</span>
+                <span class="material-symbols-outlined icon-sm">unfold_more</span>
+            </a>
+            <a th:href="@{/staff/orders}" class="icon-button hide-mobile" aria-label="Новые заказы">
+                <span class="material-symbols-outlined">notifications</span>
+                <span class="dot-badge"></span>
+            </a>
+            <form th:action="@{/api/auth/logout}" method="post" data-logout class="inline-form hide-mobile">
+                <button type="submit" class="link-button">
+                    <span class="material-symbols-outlined icon-sm">logout</span>Выйти
+                </button>
+            </form>
+            <a th:href="@{/profile}" class="avatar" th:attr="aria-label=${'Профиль: ' + headerInfo.shortName}"
+               th:title="${headerInfo.shortName}">
+                <span class="material-symbols-outlined icon-sm">person</span>
+            </a>
+            <button type="button" class="icon-button menu-toggle" data-menu-toggle aria-expanded="false" aria-label="Меню">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+        </div>
+    </div>
+
+    <!--/* ---------- Гость, покупатель, администратор (экран 6) ---------- */-->
+    <div class="container header-row"
+         th:unless="${headerInfo != null and headerInfo.staff}">
+        <div class="header-left">
+            <a th:href="@{/}" class="logo">Take<span>Today</span></a>
+            <span class="pill pill-sm hide-mobile">Бишкек</span>
+            <span class="pill serif hide-mobile hide-tablet">
+                <span class="material-symbols-outlined icon-sm">location_on</span>Бишкек
+                <span class="material-symbols-outlined icon-sm">expand_more</span>
+            </span>
+        </div>
+
+        <nav class="nav header-nav" aria-label="Основное меню">
+            <a th:href="@{/}" class="nav-link" th:classappend="${active == 'catalog'} ? 'active'">Каталог предложений</a>
+            <a href="/#home" class="nav-link" th:classappend="${active == 'how'} ? 'active'">Как это работает</a>
+            <a th:if="${headerInfo != null and headerInfo.customer}"
+               th:href="@{/orders}" class="nav-link" th:classappend="${active == 'orders' or active == 'profile'} ? 'active'">Мои заказы</a>
+            <a th:if="${headerInfo != null and headerInfo.admin}"
+               th:href="@{/admin}" class="nav-link" th:classappend="${active == 'admin'} ? 'active'">Админ-панель</a>
+        </nav>
+
+        <div class="header-right">
+            <a th:if="${headerInfo != null}" th:href="@{/profile}" class="user-chip">
+                <span class="avatar"><span class="material-symbols-outlined icon-sm">person</span></span>
+                <span class="hide-mobile">
+                    <span class="user-chip-name" th:text="${headerInfo.shortName}">Айбек Д.</span><br>
+                    <span class="user-chip-role" th:text="${headerInfo.roleTitle}">Покупатель</span>
+                </span>
+            </a>
+            <a th:if="${headerInfo == null}" href="/#login" class="btn btn-primary btn-sm">Войти</a>
+            <button type="button" class="icon-button menu-toggle" data-menu-toggle aria-expanded="false" aria-label="Меню">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+        </div>
     </div>
 </header>
 
+<!--/* ===================== Уведомление после сохранения ===================== */-->
+<div th:fragment="flash" th:remove="tag">
+    <div th:if="${success}" class="toast" role="status">
+        <div class="toast-body">
+            <span class="toast-icon"><span class="material-symbols-outlined">check</span></span>
+            <div>
+                <div class="toast-title">
+                    <span th:text="${success}">Данные сохранены</span>
+                    <span class="badge" style="background: var(--primary); color: #fff">Успешно</span>
+                </div>
+                <div class="toast-text" th:text="${successText != null} ? ${successText} : 'Изменения применены к вашему профилю.'">
+                    Изменения применены к вашему профилю.
+                </div>
+            </div>
+        </div>
+        <button type="button" class="toast-close" data-dismiss aria-label="Закрыть уведомление">
+            <span class="material-symbols-outlined icon-sm">close</span>
+        </button>
+    </div>
+    <div th:if="${error}" class="toast toast-error" role="alert">
+        <div class="toast-body">
+            <span class="toast-icon"><span class="material-symbols-outlined">priority_high</span></span>
+            <div>
+                <div class="toast-title">Не получилось</div>
+                <div class="toast-text" th:text="${error}"></div>
+            </div>
+        </div>
+        <button type="button" class="toast-close" data-dismiss aria-label="Закрыть уведомление">
+            <span class="material-symbols-outlined icon-sm">close</span>
+        </button>
+    </div>
+</div>
+
+<!--/* ===================== Подвал для покупателей (экран 6) ===================== */-->
 <footer th:fragment="footer" class="site-footer">
-    <div class="container">© TakeToday, Бишкек</div>
+    <div class="container footer-row">
+        <div class="footer-brand">
+            <div><span class="logo logo-sm">Take<span>Today</span></span> • Кыргызстан, Бишкек</div>
+            <div>© 2026 TakeToday, Бишкек. Все права защищены.</div>
+        </div>
+        <nav class="footer-links" aria-label="Ссылки в подвале">
+            <a href="/#home">Как это работает</a>
+            <a href="mailto:partners@taketoday.kg">Заведениям и пекарням</a>
+            <a href="mailto:support@taketoday.kg">Контакты</a>
+        </nav>
+    </div>
 </footer>
+
+<!--/* ===================== Подвал кабинета заведения (экраны 7, 13) ===================== */-->
+<footer th:fragment="footerBusiness" class="site-footer compact">
+    <div class="container footer-row">
+        <div class="footer-brand-inline">
+            <strong>TakeToday Бизнес</strong>
+            <span>— Платформа спасения еды для заведений Бишкека © 2026</span>
+        </div>
+        <nav class="footer-links" aria-label="Ссылки в подвале">
+            <a href="mailto:partners@taketoday.kg">Поддержка партнёров</a>
+            <a href="/#home">Как это работает</a>
+        </nav>
+    </div>
+</footer>
+
+<!--/* ===================== Боковое меню админ-панели ===================== */-->
+<aside th:fragment="adminSidebar(active)" class="admin-sidebar">
+    <a th:href="@{/admin}" class="logo">TakeToday</a>
+    <nav aria-label="Админ-панель">
+        <a th:href="@{/admin}" th:classappend="${active == 'overview'} ? 'active'">
+            <span class="material-symbols-outlined">dashboard</span>Обзор
+        </a>
+        <span class="disabled"><span class="material-symbols-outlined">group</span>Пользователи<span class="soon">этап 5</span></span>
+        <span class="disabled"><span class="material-symbols-outlined">storefront</span>Заведения<span class="soon">этап 5</span></span>
+        <span class="disabled"><span class="material-symbols-outlined">inventory_2</span>Предложения<span class="soon">этап 5</span></span>
+        <span class="disabled"><span class="material-symbols-outlined">payments</span>Платежи<span class="soon">этап 5</span></span>
+        <span class="disabled"><span class="material-symbols-outlined">currency_exchange</span>Возвраты<span class="soon">этап 5</span></span>
+        <a th:href="@{/profile}"><span class="material-symbols-outlined">person</span>Профиль</a>
+        <form th:action="@{/api/auth/logout}" method="post" data-logout class="inline-form">
+            <button type="submit"><span class="material-symbols-outlined">logout</span>Выйти</button>
+        </form>
+    </nav>
+</aside>
 
 </body>
 </html>

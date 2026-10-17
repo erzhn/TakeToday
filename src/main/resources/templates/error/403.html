@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Нет доступа')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('')}"></header>
+
+<main class="container">
+    <section class="error-page">
+        <div class="error-code">403</div>
+        <h1>Нет доступа к этому разделу</h1>
+        <p>Этот раздел доступен только пользователям с другой ролью. Если вы считаете, что это ошибка, войдите под нужной учётной записью.</p>
+        <a th:href="@{/}" class="btn btn-primary">
+            <span class="material-symbols-outlined">home</span>На главную
+        </a>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

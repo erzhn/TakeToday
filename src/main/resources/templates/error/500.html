@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ошибка')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('')}"></header>
+
+<main class="container">
+    <section class="error-page">
+        <div class="error-code">500</div>
+        <h1>Что-то пошло не так</h1>
+        <p>Попробуйте обновить страницу или зайдите позже. Мы уже знаем о проблеме.</p>
+        <a th:href="@{/}" class="btn btn-primary">
+            <span class="material-symbols-outlined">home</span>На главную
+        </a>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

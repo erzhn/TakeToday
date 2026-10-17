@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Страница не найдена')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('')}"></header>
+
+<main class="container">
+    <section class="error-page">
+        <div class="error-code">404</div>
+        <h1>Страница не найдена</h1>
+        <p>Возможно, ссылка устарела или страница ещё не готова.</p>
+        <a th:href="@{/}" class="btn btn-primary">
+            <span class="material-symbols-outlined">home</span>На главную
+        </a>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
