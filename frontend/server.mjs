@@ -1,7 +1,7 @@
 import http from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
-const root=new URL('./',import.meta.url);
+const root=new URL('../src/main/resources/static/',import.meta.url);
 const backend=new URL(process.env.API_URL||'http://localhost:8080');
 const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8'};
 http.createServer(async(req,res)=>{
