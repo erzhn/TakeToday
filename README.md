@@ -107,21 +107,25 @@ docker compose -f compose.yaml ps
 
 Используйте именно `-f compose.yaml`: этот файл запускает PostgreSQL 17 на порту **5433** и Mailpit. В репозитории также есть `docker-compose.yml` с PostgreSQL 16 на **5432**; это другой вариант конфигурации. Не смешивайте его порты с примером выше. База `taketoday` создаётся контейнером автоматически.
 
-### 2. Настройте локальную почту и запустите приложение
-
-В том же окне PowerShell:
+### 2. Запустите приложение
 
 ```powershell
-$env:MAIL_USERNAME = "noreply@taketoday.local"
-$env:MAIL_PASSWORD = "local-unused"
-$env:SPRING_MAIL_HOST = "localhost"
-$env:SPRING_MAIL_PORT = "1025"
-$env:SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH = "false"
-$env:SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE = "false"
 .\start-backend.ps1
 ```
 
-Скрипт читает `DB_URL`, `DB_USER`, `DB_PASSWORD`, `PORT`, `ADMIN_EMAIL` и `ADMIN_PASSWORD` из `.env` и запускает Maven Wrapper. Spring Boot сам по себе `.env` не читает. Почтовые переменные из блока выше задаются в текущем процессе PowerShell; при открытии нового окна их нужно задать заново. Скрипт сейчас не загружает `MAIL_USERNAME`, `MAIL_PASSWORD` и `SPRING_MAIL_*` из `.env`.
+Скрипт читает настройки из `.env` и запускает Maven Wrapper. Если `MAIL_USERNAME` в `.env` не указан, письма уходят в локальный Mailpit из `compose.yaml` — отдельно задавать почтовые переменные не нужно.
+
+Если порт 8080 занят (например, другим контейнером Docker), добавьте в `.env` строку `PORT=8081`.
+
+Запуск без скрипта (например, если PowerShell запрещает `.ps1`):
+
+```powershell
+Get-Content .env | ForEach-Object { if ($_ -match '^([A-Z_]+)=(.*)$') { Set-Item "env:$($Matches[1])" $Matches[2] } }
+$env:MAIL_USERNAME = "noreply@taketoday.local"; $env:MAIL_PASSWORD = "local-unused"
+$env:SPRING_MAIL_HOST = "localhost"; $env:SPRING_MAIL_PORT = "1025"
+$env:SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH = "false"; $env:SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE = "false"
+.\mvnw.cmd spring-boot:run
+```
 
 После сообщения об успешном старте:
 
@@ -249,7 +253,9 @@ node --check frontend/server.mjs
 - `src/main/java/com/example/taketoday/auth` — авторизация и регистрация.
 - `src/main/java/com/example/taketoday/common`, `profile`, `venue`, `admin` — личный кабинет, сведения о заведении и админ-панель (этап 1).
 - `src/main/resources/templates`, `static/css/app.css`, `static/js/app.js` — страницы Thymeleaf этапа 1 и их стили.
-- `src/main/resources/static/index.html`, `styles.css`, `app.js` — общий источник интерфейса для Spring Boot и отдельного Node-сервера. Ранее файлы находились в `frontend`; перенос устраняет 404 из-за отсутствия ресурсов в сборке.
+- `src/main/resources/static/fonts`, `static/css/fonts.css` — шрифты и иконки лежат в проекте, без Google Fonts (как добавить иконку — `docs/fonts.md`).
+- `/orders`, `/staff/pickup`, `/staff/orders` — пока страницы «Раздел появится на этапе N» (`ComingSoonController`), чтобы ссылки в меню не вели на 404.
+- `src/main/resources/static/index.html`, `styles.css`, `app.js` — главная, вход, регистрация, код из письма и сброс пароля (одна страница, экраны 1 и 12 в Figma). Использует общие стили `css/app.css` и шрифты `fonts/`, как страницы кабинетов. Ранее файлы находились в `frontend`; перенос устраняет 404 из-за отсутствия ресурсов в сборке.
 - `src/main/resources/db/migration` — миграции Flyway.
 - `frontend/server.mjs` — необязательный сервер интерфейса и API-прокси.
 - `src/test/java/com/example/taketoday/HomePageTests.java` — проверки публичной главной и защищённых разделов.

@@ -37,12 +37,22 @@ public class AuthService {
  public Challenge register(Registration r){
  String e=email(r.email()); throttle(e);password(r.password());
  if("STAFF".equals(r.role()) && (blank(r.establishmentName())||blank(r.address())||blank(r.contact())||blank(r.workingHours())))throw new ApiError(BAD_REQUEST,"Укажите название, адрес, контакты и часы работы заведения.");
- var existing=byEmail(e);if(existing!=null)throw new ApiError(CONFLICT,"Эта почта уже зарегистрирована. Войдите или восстановите пароль.");
+ String contact=null;
+ if("STAFF".equals(r.role())){contact=r.contact().strip();
+ if(contact.matches(com.example.taketoday.common.ValidationRules.PHONE_REGEX))contact=com.example.taketoday.common.ValidationRules.normalizePhone(contact);
+ else if(contact.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))contact=contact.toLowerCase(Locale.ROOT);
+ else throw new ApiError(BAD_REQUEST,"Контакт заведения: телефон в формате +996 700 123 456 или электронная почта.");}
+ var existing=byEmail(e);
+ if(existing!=null&&Boolean.TRUE.equals(existing.get("verified")))throw new ApiError(CONFLICT,"Эта почта уже зарегистрирована. Войдите или восстановите пароль.");
+ // Почту зарегистрировали, но так и не подтвердили (могли ввести чужую). Владелец почты может зарегистрироваться заново:
+ // старую неподтверждённую запись удаляем вместе с её кодами и заведением.
+ if(existing!=null)removeUnverified((UUID)existing.get("id"));
  UUID id=UUID.randomUUID();db.update("INSERT INTO accounts(id,email,password_hash,name,role) VALUES (?,?,?,?,?)",id,e,encoder.encode(r.password()),r.name().strip(),r.role());
- if("STAFF".equals(r.role()))db.update("INSERT INTO establishments(id,owner_id,name,address,contact,working_hours) VALUES (?,?,?,?,?,?)",UUID.randomUUID(),id,r.establishmentName().strip(),r.address().strip(),r.contact().strip(),r.workingHours().strip());
+ if("STAFF".equals(r.role()))db.update("INSERT INTO establishments(id,owner_id,name,address,contact,working_hours) VALUES (?,?,?,?,?,?)",UUID.randomUUID(),id,r.establishmentName().strip(),r.address().strip(),contact,r.workingHours().strip());
  return issue(id,e,"REGISTER");
  }
  private boolean blank(String s){return s==null||s.isBlank();}
+ private void removeUnverified(UUID id){db.update("DELETE FROM auth_challenges WHERE account_id=?",id);db.update("DELETE FROM establishments WHERE owner_id=?",id);db.update("DELETE FROM accounts WHERE id=? AND verified=FALSE",id);}
  public Challenge login(Login r){password(r.password());String e=email(r.email());throttle(e);var a=byEmail(e);
  boolean valid=encoder.matches(r.password(),a==null?dummy:(String)a.get("password_hash"));
  if(a==null||!valid||Boolean.TRUE.equals(a.get("blocked")))throw new ApiError(UNAUTHORIZED,"Неверная почта или пароль либо учетная запись заблокирована.");

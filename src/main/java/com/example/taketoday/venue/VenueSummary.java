@@ -35,10 +35,17 @@ public final class VenueSummary {
         String hours = ScheduleText.hours(day);
         String todayHours = "выходной".equals(hours) ? "Выходной" : hours;
 
-        String summary = ScheduleText.of(e.workDays());
-        String scheduleLabel = summary.startsWith("Ежедневно")
-                ? "График: " + summary.toLowerCase()
-                : ("Выходной".equals(todayHours) ? "Сегодня выходной" : "Сегодня: " + todayHours);
+        String scheduleLabel;
+        if (!e.scheduleSaved() && e.workingHours() != null && !e.workingHours().isBlank()) {
+            // График по дням ещё не заполняли — показываем то, что указали при регистрации
+            scheduleLabel = "График: " + e.workingHours();
+            todayHours = e.workingHours();
+        } else {
+            String summary = ScheduleText.of(e.workDays());
+            scheduleLabel = summary.startsWith("Ежедневно")
+                    ? "График: " + summary.toLowerCase()
+                    : ("Выходной".equals(todayHours) ? "Сегодня выходной" : "Сегодня: " + todayHours);
+        }
 
         return new VenueSummary(
                 e.name(),

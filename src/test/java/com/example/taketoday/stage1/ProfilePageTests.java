@@ -2,6 +2,7 @@ package com.example.taketoday.stage1;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpSession;
 
 import java.util.UUID;
 
@@ -124,5 +125,32 @@ class ProfilePageTests extends Stage1TestSupport {
 
         // Вход, сделанный до смены пароля, больше не действует
         mvc.perform(get("/profile").with(oldSession)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void wrongCurrentPasswordIsLimited() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        for (int i = 0; i < 5; i++) {
+            mvc.perform(post("/profile/password").with(as(buyer)).with(csrf()).session(session)
+                            .param("currentPassword", "NotMyPassword" + i)
+                            .param("newPassword", "NewPassword456")
+                            .param("confirmPassword", "NewPassword456"))
+                    .andExpect(status().isOk());
+        }
+        // Даже с верным паролем — пока блокировка, смена не проходит
+        mvc.perform(post("/profile/password").with(as(buyer)).with(csrf()).session(session)
+                        .param("currentPassword", PASSWORD)
+                        .param("newPassword", "NewPassword456")
+                        .param("confirmPassword", "NewPassword456"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Слишком много неверных попыток")));
+
+        assertThat(encoder.matches(PASSWORD, (String) accountRow(buyer).get("password_hash"))).isTrue();
+    }
+
+    @Test
+    void forgotPasswordLinkLeadsToRecovery() throws Exception {
+        mvc.perform(get("/profile").with(as(buyer)))
+                .andExpect(content().string(containsString("href=\"/#forgot\"")));
     }
 }

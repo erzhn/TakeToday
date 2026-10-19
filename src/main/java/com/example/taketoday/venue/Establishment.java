@@ -13,6 +13,8 @@ import java.util.UUID;
  * @param contact      телефон для связи (заполняется при регистрации)
  * @param workingHours краткий текст графика, например «Пн–Пт 09:00–21:00, Сб–Вс выходной»
  * @param workDays     ровно 7 дней: 1 = понедельник … 7 = воскресенье
+ * @param scheduleSaved график по дням уже сохраняли. Если нет — workDays заполнены по умолчанию,
+ *                      а настоящие часы есть только текстом в workingHours (как указали при регистрации)
  */
 public record Establishment(
         UUID id,
@@ -28,7 +30,8 @@ public record Establishment(
         String logoPath,
         String workingHours,
         Instant updatedAt,
-        List<WorkDayForm> workDays
+        List<WorkDayForm> workDays,
+        boolean scheduleSaved
 ) {
     /** Заполнены ли данные, без которых нельзя выставлять предложения (этап 2). */
     public boolean isProfileComplete() {

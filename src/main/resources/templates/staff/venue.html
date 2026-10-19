@@ -20,6 +20,16 @@
         </button>
     </div>
 
+    <div th:if="${error}" class="toast toast-error" role="alert">
+        <div class="toast-body">
+            <span class="toast-icon"><span class="material-symbols-outlined">priority_high</span></span>
+            <div>
+                <div class="toast-title">Не получилось</div>
+                <div class="toast-text" th:text="${error}"></div>
+            </div>
+        </div>
+    </div>
+
     <th:block th:object="${venueForm}">
         <div class="toast toast-error" th:if="${#fields.hasAnyErrors()}" role="alert">
             <div class="toast-body">
@@ -168,7 +178,7 @@
                                    placeholder="+996 555 341 289">
                         </div>
                         <p class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
-                        <p class="hint" th:unless="${#fields.hasErrors('phone')}">Для оперативного звонка менеджера и подтверждения выдач.</p>
+                        <p class="hint" th:unless="${#fields.hasErrors('phone')}">Для звонка менеджера и подтверждения выдач. Укажите телефон или почту — хотя бы одно.</p>
                     </div>
 
                     <div class="field">
@@ -210,6 +220,12 @@
 
             <p class="field-error" th:each="err : ${#fields.errors('workDays')}" th:text="${err}"
                style="margin-bottom: 8px"></p>
+
+            <div class="note" th:if="${registrationHours}" style="margin-bottom: 12px">
+                <span class="material-symbols-outlined icon-sm">info</span>
+                <span>При регистрации указано: «<span th:text="${registrationHours}">Пн–Сб, 09:00–21:00</span>».
+                    Проверьте часы по дням ниже и сохраните — так покупатели увидят точный график.</span>
+            </div>
 
             <table class="schedule">
                 <thead>
