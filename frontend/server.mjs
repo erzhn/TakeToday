@@ -5,7 +5,7 @@ const root=new URL('../src/main/resources/static/',import.meta.url);
 const backend=new URL(process.env.API_URL||'http://localhost:8080');
 const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.woff2':'font/woff2','.svg':'image/svg+xml'};
 http.createServer(async(req,res)=>{
- if(req.url.startsWith('/api/')){
+ if(['/api/','/catalog','/offers/','/images/','/css/','/js/','/uploads/','/profile','/staff','/admin','/forgot-password'].some(path=>req.url.startsWith(path))){
  const proxy=http.request(new URL(req.url,backend),{method:req.method,headers:{...req.headers,host:backend.host}},up=>{res.writeHead(up.statusCode,up.headers);up.pipe(res);});
  proxy.on('error',()=>{res.writeHead(503,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify({message:'Сервер недоступен. Попробуйте позже.'}));});req.pipe(proxy);return;
  }

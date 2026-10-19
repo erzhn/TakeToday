@@ -1,15 +1,18 @@
 // TakeToday — главная, вход, регистрация, код из письма и восстановление пароля (экраны 1 и 12 в Figma).
-// Работает через API /api/auth/** (AuthController). Адреса страниц: #home, #login, #register, #forgot, #code.
+// Работает через API /api/auth/** (AuthController, PasswordRecoveryController).
+// Адреса страниц: #home, #login, #register, #code, #recovery → #recovery-code → #recovery-password.
 // Личный кабинет, кабинет заведения и админ-панель — отдельные страницы Thymeleaf (/profile, /staff, /admin).
 
 const app = document.querySelector('#app');
 const nav = document.querySelector('#nav');
 
 const ROLES = { GUEST: 'Гость', CUSTOMER: 'Покупатель', STAFF: 'Сотрудник заведения', ADMIN: 'Администратор' };
-const AUTH_PAGES = ['login', 'register', 'forgot', 'code'];
+const AUTH_PAGES = ['login', 'register', 'forgot', 'code', 'recovery', 'recovery-code', 'recovery-password'];
 
 let user = { role: 'GUEST' };
 let pending = readChallenge();
+// Восстановление пароля (Жаныбек, /api/auth/recovery/**): данные шага держим только в памяти страницы
+let recovery = { challenge: null, resetToken: null, email: '', sentAt: 0 };
 
 // ---------- Вспомогательное ----------
 
@@ -89,8 +92,9 @@ function navigation(page) {
         return;
     }
 
+    const catalog = '<a class="nav-link hide-mobile" href="/catalog">Каталог предложений</a>';
     if (user.role === 'GUEST') {
-        nav.innerHTML =
+        nav.innerHTML = catalog +
             '<a class="nav-link hide-mobile" href="#how">Как это работает</a>' +
             '<a class="nav-link" href="#login">Войти</a>' +
             '<a class="btn btn-primary btn-sm" href="#register">Регистрация</a>';
@@ -100,7 +104,7 @@ function navigation(page) {
     const section = user.role === 'STAFF' ? '<a class="nav-link hide-mobile" href="/staff">Кабинет заведения</a>'
         : user.role === 'ADMIN' ? '<a class="nav-link hide-mobile" href="/admin">Админ-панель</a>'
         : '<a class="nav-link hide-mobile" href="/orders">Мои заказы</a>';
-    nav.innerHTML = '<a class="nav-link hide-mobile" href="#how">Как это работает</a>' + section +
+    nav.innerHTML = catalog + '<a class="nav-link hide-mobile" href="#how">Как это работает</a>' + section +
         '<a class="user-chip" href="/profile" title="Профиль">' +
         '<span class="avatar">' + icon('person', 'icon-sm') + '</span>' +
         '<span class="hide-mobile"><span class="user-chip-name">' + escape(shortName(user.name)) + '</span><br>' +
@@ -139,10 +143,10 @@ async function home() {
         '<p>Кафе и пекарни Бишкека продают оставшуюся к концу дня еду со скидкой. Оплатите набор онлайн, получите код и заберите его в заведении в указанное время.</p>' +
         '<div class="hero-actions">' +
         (guest
-            ? '<a class="btn btn-primary" href="#register">Создать аккаунт' + icon('arrow_forward') + '</a><a class="btn btn-outline" href="#login">У меня есть аккаунт</a>'
-            : '<a class="btn btn-primary" href="/profile">' + icon('person') + 'Личный кабинет</a>') +
+            ? '<a class="btn btn-primary" href="/catalog">' + icon('search') + 'Смотреть наборы</a><a class="btn btn-outline" href="#register">Создать аккаунт</a>'
+            : '<a class="btn btn-primary" href="/catalog">' + icon('search') + 'Смотреть наборы</a><a class="btn btn-outline" href="/profile">' + icon('person') + 'Личный кабинет</a>') +
         '</div>' +
-        '<p class="hint">' + icon('info', 'icon-sm') + (guest ? 'Смотреть предложения можно без регистрации. Чтобы бронировать и оплачивать, войдите.' : 'Каталог предложений появится на следующем этапе.') + '</p>' +
+        '<p class="hint">' + icon('info', 'icon-sm') + (guest ? 'Смотреть предложения можно без регистрации. Чтобы бронировать и оплачивать, войдите.' : 'Бронирование и оплата появятся на следующем этапе.') + '</p>' +
         '</div>' +
         '<div class="hero-art" aria-hidden="true">' +
         '<div class="hero-card"><span class="hero-card-tag">−50%</span>' + icon('bakery_dining') +
@@ -203,7 +207,7 @@ function authLayout(page, title, subtitle, content) {
         '<div class="auth-bg" aria-hidden="true"><span class="blob blob-1"></span><span class="blob blob-2"></span></div>' +
         '<section class="auth-wrap">' +
         '<nav class="auth-tabs" aria-label="Вход и регистрация">' +
-        tab('login', 'login', 'Вход') + tab('register', 'person', 'Регистрация') + tab('forgot', 'lock_reset', 'Сброс') +
+        tab('login', 'login', 'Вход') + tab('register', 'person', 'Регистрация') + tab('recovery', 'lock_reset', 'Сброс') +
         '</nav>' +
         '<div class="auth-card">' +
         '<div class="auth-brand"><span class="brand-mark">' + icon('eco', 'icon-fill') + '</span>' +
@@ -294,7 +298,7 @@ function login() {
     authLayout('login', 'Вход в аккаунт',
         'Войдите по почте и паролю — затем подтвердите вход кодом из письма.',
         '<form class="form-grid" novalidate>' + emailField() +
-        passwordField('Пароль', 'current-password', '<a class="field-meta auth-link" href="#forgot">Забыли пароль?</a>') +
+        passwordField('Пароль', 'current-password', '<a class="field-meta auth-link" href="#recovery">Забыли пароль?</a>') +
         submitButton('Получить код входа') + '</form>' +
         '<p class="auth-switch">Нет аккаунта? <a href="#register">Зарегистрироваться</a></p>');
     bindForm(async data => saveChallenge(await api('/auth/login', data), 'LOGIN'));
@@ -340,18 +344,81 @@ function register() {
     });
 }
 
-function forgot() {
-    authLayout('forgot', 'Восстановить доступ',
-        'Укажите почту — если такая учётная запись есть, мы отправим код для смены пароля.',
+// ---------- Восстановление пароля: почта → код → новый пароль (API Жаныбека /api/auth/recovery/**) ----------
+
+function recoveryRequest() {
+    recovery = { challenge: null, resetToken: null, email: '', sentAt: 0 };
+    authLayout('recovery', 'Восстановить пароль',
+        'Отправим 6-значный код на почту вашей учётной записи.',
         '<form class="form-grid" novalidate>' + emailField() + submitButton('Отправить код') + '</form>' +
         '<p class="auth-switch">Вспомнили пароль? <a href="#login">Войти</a></p>');
-    bindForm(async data => saveChallenge(await api('/auth/forgot-password', data), 'RESET'));
+    bindForm(async data => {
+        recovery.challenge = await api('/auth/recovery/request', data);
+        recovery.email = data.email;
+        recovery.sentAt = Date.now();
+        go('recovery-code');
+        notice(recovery.challenge.message, true);
+    });
+}
+
+function recoveryCode() {
+    if (!recovery.challenge) { go('recovery'); return; }
+    authLayout('recovery', 'Подтвердите код',
+        'Введите код из письма. Он действует 10 минут. Если письма нет — проверьте папку «Спам».',
+        '<form class="form-grid" novalidate>' +
+        '<div class="field"><label class="field-label" for="f-code"><span>Код из письма</span></label>' +
+        '<input class="input code-input" id="f-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code"' +
+        ' pattern="[0-9]{6}" minlength="6" maxlength="6" required placeholder="000000" autofocus></div>' +
+        submitButton('Проверить код') + '</form>' +
+        '<div class="code-actions">' +
+        '<button id="recovery-resend" class="link-button" type="button">' + icon('refresh', 'icon-sm') + 'Отправить код ещё раз</button>' +
+        '<a href="#recovery" class="auth-link">Начать заново</a></div>');
+    bindForm(async data => {
+        const result = await api('/auth/recovery/verify', { challengeId: recovery.challenge.challengeId, code: data.code });
+        recovery.resetToken = result.resetToken;
+        go('recovery-password');
+    });
+    const button = document.querySelector('#recovery-resend');
+    button.addEventListener('click', async () => {
+        const wait = Math.ceil((recovery.sentAt + 60000 - Date.now()) / 1000);
+        if (wait > 0) { notice('Новый код можно запросить через ' + wait + ' с.'); return; }
+        button.disabled = true;
+        try {
+            recovery.challenge = await api('/auth/recovery/request', { email: recovery.email });
+            recovery.sentAt = Date.now();
+            recovery.resetToken = null;
+            notice('Новый код отправлен. Предыдущий код больше не действует.', true);
+        } catch (e) {
+            notice(e.message);
+        } finally {
+            button.disabled = false;
+        }
+    });
+}
+
+function recoveryPassword() {
+    if (!recovery.challenge || !recovery.resetToken) { go('recovery'); return; }
+    authLayout('recovery', 'Новый пароль',
+        'Почта подтверждена. Придумайте новый пароль.',
+        '<form class="form-grid" novalidate>' +
+        passwordField('Новый пароль', 'new-password', '', true) +
+        field({ name: 'confirm', label: 'Повторите пароль', type: 'password', iconName: 'lock', autocomplete: 'new-password', minlength: 10, maxlength: 72 }) +
+        submitButton('Сохранить пароль', 'save') + '</form>');
+    bindStrength();
+    bindForm(async data => {
+        if (data.password !== data.confirm) throw new Error('Пароли не совпадают.');
+        if (new TextEncoder().encode(data.password).length > 72) throw new Error('Пароль должен занимать не более 72 байт UTF-8.');
+        await api('/auth/recovery/reset', { challengeId: recovery.challenge.challengeId, resetToken: recovery.resetToken, password: data.password });
+        recovery = { challenge: null, resetToken: null, email: '', sentAt: 0 };
+        go('login');
+        notice('Пароль изменён. Войдите с новым паролем.', true);
+    });
 }
 
 function code() {
     if (!pending) { go('login'); return; }
     const reset = pending.purpose === 'RESET';
-    authLayout(reset ? 'forgot' : (pending.purpose === 'REGISTER' ? 'register' : 'login'),
+    authLayout(reset ? 'recovery' : (pending.purpose === 'REGISTER' ? 'register' : 'login'),
         reset ? 'Новый пароль' : 'Проверьте почту',
         'Введите 6-значный код из письма. Он действует 10 минут. Если письма нет — проверьте папку «Спам».',
         '<form class="form-grid" novalidate>' +
@@ -363,7 +430,7 @@ function code() {
         '<div class="code-actions">' +
         '<p id="code-time" class="hint">' + icon('timer', 'icon-sm') + '<span data-time></span></p>' +
         '<button id="resend" class="link-button" type="button">' + icon('refresh', 'icon-sm') + 'Отправить код ещё раз</button>' +
-        '<a href="#' + (reset ? 'forgot' : 'login') + '" class="auth-link">Начать заново</a>' +
+        '<a href="#' + (reset ? 'recovery' : 'login') + '" class="auth-link">Начать заново</a>' +
         '</div>');
     bindStrength();
     bindForm(async data => {
@@ -415,7 +482,11 @@ function render() {
     if (page === 'how') page = 'home';
     if (user.role !== 'GUEST' && AUTH_PAGES.includes(page)) { go('home'); return; }
     navigation(page);
-    ({ home, login, register, forgot, code }[page] || home)();
+    ({
+        home, login, register, code,
+        recovery: recoveryRequest, forgot: recoveryRequest,
+        'recovery-code': recoveryCode, 'recovery-password': recoveryPassword
+    }[page] || home)();
     window.scrollTo(0, 0);
     scrollToHashTarget();
 }

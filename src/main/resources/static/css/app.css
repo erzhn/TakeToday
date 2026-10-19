@@ -6,6 +6,39 @@
    Новые страницы собираем из этих классов, свои цвета не придумываем.
    ===================================================================== */
 
+.catalog-page { padding-top: 36px; padding-bottom: 48px; }
+.catalog-intro { margin-bottom: 28px; }
+.catalog-intro h1 { font-size: clamp(30px, 4vw, 46px); margin: 12px 0; }
+.catalog-intro p, .catalog-muted, .catalog-venue { color: var(--muted); }
+.catalog-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 24px; margin-bottom: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); align-items: end; }
+.catalog-filters label { display: grid; gap: 6px; font-family: var(--font-heading); font-size: 16px; }
+.catalog-filters input, .catalog-filters select { width: 100%; min-width: 0; padding: 11px; border: 1px solid var(--outline); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font: inherit; }
+.catalog-filters input:focus-visible, .catalog-filters select:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.catalog-filter-help, .catalog-errors { grid-column: 1 / -1; }
+.catalog-filter-help { color: var(--muted); font-size: 13px; }
+.catalog-errors { color: var(--error); }
+.catalog-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.catalog-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-card); }
+.catalog-photo { display: block; }
+.catalog-photo img { width: 100%; height: 210px; object-fit: cover; }
+.catalog-card-body { display: grid; gap: 12px; padding: 20px; }
+.catalog-card h2 { font-size: 24px; }
+.catalog-prices strong { font-family: var(--font-num); font-size: 28px; color: var(--primary); }
+.catalog-prices del { color: var(--muted); margin-left: 8px; }
+.catalog-availability { font-weight: 600; color: var(--primary); }
+.catalog-sold-out { color: var(--muted); }
+.catalog-empty { padding: 40px 16px; text-align: center; display: grid; justify-items: center; gap: 16px; }
+.catalog-pagination { display: flex; align-items: center; justify-content: center; gap: 20px; margin-top: 28px; }
+.catalog-back { display: inline-block; margin-bottom: 24px; }
+.catalog-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: start; }
+.catalog-detail-photo { width: 100%; height: auto; border-radius: var(--radius); object-fit: cover; }
+.catalog-detail-info { display: grid; gap: 16px; justify-items: start; }
+.catalog-detail-info h1 { font-size: clamp(30px, 4vw, 42px); }
+.catalog-detail-info h2 { font-size: 24px; margin-top: 8px; }
+.catalog-composition { white-space: pre-line; overflow-wrap: anywhere; }
+@media (max-width: 1000px) { .catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .catalog-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .catalog-grid, .catalog-detail { grid-template-columns: 1fr; } .catalog-filters { padding: 16px; gap: 12px; } .catalog-search { grid-column: 1 / -1; } .catalog-detail { gap: 24px; } }
+
 :root {
     /* Цвета бренда */
     --primary: #1b5e20;
