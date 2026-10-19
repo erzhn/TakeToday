@@ -306,7 +306,8 @@ img { max-width: 100%; display: block; }
 .breadcrumbs .current { color: var(--text); font-weight: 600; }
 .breadcrumbs .sep { font-size: 14px; color: var(--outline); }
 
-.page { padding: 24px 0 64px; }
+/* Только сверху и снизу: боковые отступы задаёт .container (иначе контент шире шапки) */
+.page { padding-top: 24px; padding-bottom: 64px; }
 .page-head {
     display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap;
     margin: 12px 0 28px;

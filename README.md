@@ -181,7 +181,7 @@ node --check frontend/server.mjs
 - `src/main/resources/templates`, `static/css/app.css`, `static/js/app.js` — страницы Thymeleaf этапа 1 и их стили.
 - `src/main/resources/static/fonts`, `static/css/fonts.css` — шрифты и иконки лежат в проекте, без Google Fonts (как добавить иконку — `docs/fonts.md`).
 - `/orders`, `/staff/pickup`, `/staff/orders` — пока страницы «Раздел появится на этапе N» (`ComingSoonController`), чтобы ссылки в меню не вели на 404.
-- `src/main/resources/static/index.html`, `styles.css`, `app.js` — общий источник интерфейса для Spring Boot и отдельного Node-сервера. Ранее файлы находились в `frontend`; перенос устраняет 404 из-за отсутствия ресурсов в сборке.
+- `src/main/resources/static/index.html`, `styles.css`, `app.js` — главная, вход, регистрация, код из письма и сброс пароля (одна страница, экраны 1 и 12 в Figma). Использует общие стили `css/app.css` и шрифты `fonts/`, как страницы кабинетов. Ранее файлы находились в `frontend`; перенос устраняет 404 из-за отсутствия ресурсов в сборке.
 - `src/main/resources/db/migration` — миграции Flyway.
 - `frontend/server.mjs` — необязательный сервер интерфейса и API-прокси.
 - `src/test/java/com/example/taketoday/HomePageTests.java` — проверки публичной главной и защищённых разделов.
