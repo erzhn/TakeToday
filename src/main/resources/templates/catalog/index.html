@@ -4,10 +4,14 @@
 <body>
 <header th:replace="~{fragments/layout :: header('catalog')}"></header>
 <main class="container catalog-page">
-    <div class="catalog-intro"><span class="pill pill-green">Бишкек · сегодня и завтра</span>
-        <h1>Хорошая еда ждёт вас</h1><p>Выберите набор со скидкой и заберите его в заведении. Время указано по Бишкеку.</p></div>
+    <div class="catalog-location"><span>Бишкек, Кыргызстан</span><span class="pill pill-green">Сегодня и завтра</span></div>
+    <section class="catalog-intro"><span class="pill pill-green">Осознанное потребление</span>
+        <h1>Вкусная еда со скидкой<br><em>— забери сегодня</em></h1>
+        <p>Кафе и пекарни Бишкека предлагают еду дешевле. Выберите набор и заберите в удобное время.</p>
+        <div class="catalog-benefits"><span>Выгодные наборы</span><span>Самовывоз рядом</span><span>Еда не пропадает</span></div>
+    </section>
     <form method="get" th:action="@{/catalog}" th:object="${filter}" class="catalog-filters">
-        <label class="catalog-search">Название набора<input type="search" th:field="*{q}" maxlength="150" placeholder="Например, выпечка"></label>
+        <label class="catalog-search">Название набора<input type="search" th:field="*{q}" maxlength="150" placeholder="Поиск по названию набора"></label>
         <label>Вид еды<select th:field="*{type}"><option value="">Все виды</option><option th:each="type : ${types}" th:value="${type}" th:text="${type.title}"></option></select></label>
         <label>Цена от, сом<input type="number" th:field="*{minPrice}" min="0" max="100000" placeholder="0"></label>
         <label>Цена до, сом<input type="number" th:field="*{maxPrice}" min="0" max="100000" placeholder="Любая"></label>
@@ -21,6 +25,7 @@
         </div>
     </form>
     <section th:if="${offers.isEmpty()}" class="catalog-empty"><h2>Наборы не найдены</h2><p>Попробуйте изменить фильтры или загляните позже.</p><a th:href="@{/catalog}" class="btn btn-outline">Показать все наборы</a></section>
+    <div class="catalog-feed-title"><h2>Сегодня на витрине</h2><span>Время по Бишкеку</span></div>
     <section class="catalog-grid" aria-label="Предложения еды">
         <article th:each="offer : ${offers}" class="catalog-card">
             <a th:href="@{/offers/{id}(id=${offer.id})}" class="catalog-photo"><img th:src="${offer.photoPath}" th:alt="${offer.title}" loading="lazy" width="640" height="420"></a>
@@ -30,7 +35,7 @@
                 <p class="catalog-prices"><strong th:text="${offer.discountPrice} + ' сом'"></strong> <del th:text="${offer.regularPrice} + ' сом'"></del></p>
                 <p>Получение: <span th:text="${offer.pickupStartText}"></span> — <span th:text="${offer.pickupEndText}"></span></p>
                 <p class="catalog-availability" th:classappend="${offer.availablePortions == 0} ? 'catalog-sold-out'" th:text="${offer.availabilityAt(now)}"></p>
-                <a th:href="@{/offers/{id}(id=${offer.id})}" class="btn btn-outline">Подробнее о наборе</a>
+                <a th:href="@{/offers/{id}(id=${offer.id})}" class="btn btn-outline">Выбрать →</a>
             </div>
         </article>
     </section>
