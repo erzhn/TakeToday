@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${offer.title})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('catalog')}"></header>
+<main class="container catalog-page">
+    <a th:href="@{/catalog}" class="catalog-back">← Каталог предложений</a>
+    <article class="catalog-detail">
+        <img class="catalog-detail-photo" th:src="${offer.photoPath}" th:alt="${offer.title}" width="640" height="420">
+        <div class="catalog-detail-info">
+            <span class="pill pill-green" th:text="${offer.foodType.title}"></span>
+            <p class="catalog-venue" th:text="${offer.establishmentName}"></p>
+            <h1 th:text="${offer.title}"></h1>
+            <p class="catalog-prices"><strong th:text="${offer.discountPrice} + ' сом'"></strong> <del th:text="${offer.regularPrice} + ' сом'"></del></p>
+            <h2>Состав набора</h2><p class="catalog-composition" th:text="${offer.composition}"></p>
+            <h2>Где и когда забрать</h2><p th:text="${offer.address}"></p>
+            <p>Начало: <span th:text="${offer.pickupStartText}"></span></p>
+            <p>Окончание: <span th:text="${offer.pickupEndText}"></span></p><p class="catalog-muted">Время по Бишкеку (UTC+6). Самовывоз из заведения.</p>
+            <p>Доступных порций: <strong th:text="${offer.availablePortions}"></strong></p>
+            <p class="catalog-availability" role="status" th:text="${availability}"></p>
+            <p class="catalog-muted">Бронирование и оплата пока недоступны.</p>
+        </div>
+    </article>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body></html>
