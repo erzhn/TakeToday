@@ -72,6 +72,7 @@ public class EstablishmentRepository {
     private Establishment map(ResultSet rs) throws SQLException {
         UUID id = rs.getObject("id", UUID.class);
         Timestamp updated = rs.getTimestamp("updated_at");
+        List<WorkDayForm> saved = savedWorkDays(id);
         return new Establishment(
                 id,
                 rs.getObject("owner_id", UUID.class),
@@ -86,12 +87,12 @@ public class EstablishmentRepository {
                 rs.getString("logo_path"),
                 rs.getString("working_hours"),
                 updated == null ? null : updated.toInstant(),
-                workDays(id));
+                withDefaults(saved),
+                !saved.isEmpty());
     }
 
-    /** 7 дней графика. Если график ещё не сохраняли — все дни рабочие 09:00–21:00. */
-    private List<WorkDayForm> workDays(UUID establishmentId) {
-        List<WorkDayForm> saved = db.query(
+    private List<WorkDayForm> savedWorkDays(UUID establishmentId) {
+        return db.query(
                 "SELECT * FROM establishment_work_days WHERE establishment_id = ? ORDER BY day_of_week",
                 (rs, n) -> new WorkDayForm(
                         rs.getInt("day_of_week"),
@@ -99,7 +100,10 @@ public class EstablishmentRepository {
                         rs.getObject("open_time", LocalTime.class),
                         rs.getObject("close_time", LocalTime.class)),
                 establishmentId);
+    }
 
+    /** 7 дней графика. Дни, которых ещё нет в базе, — рабочие 09:00–21:00. */
+    private static List<WorkDayForm> withDefaults(List<WorkDayForm> saved) {
         List<WorkDayForm> result = new ArrayList<>();
         for (int day = 1; day <= 7; day++) {
             final int d = day;

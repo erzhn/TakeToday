@@ -123,7 +123,7 @@ img { max-width: 100%; display: block; }
     line-height: 1;
     vertical-align: middle;
     user-select: none;
-    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    font-variation-settings: "FILL" 0;
 }
 .icon-sm { font-size: 16px !important; }
 .icon-xs { font-size: 14px !important; }
@@ -339,7 +339,8 @@ img { max-width: 100%; display: block; }
 .breadcrumbs .current { color: var(--text); font-weight: 600; }
 .breadcrumbs .sep { font-size: 14px; color: var(--outline); }
 
-.page { padding: 24px 0 64px; }
+/* Только сверху и снизу: боковые отступы задаёт .container (иначе контент шире шапки) */
+.page { padding-top: 24px; padding-bottom: 64px; }
 .page-head {
     display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap;
     margin: 12px 0 28px;
@@ -822,8 +823,9 @@ img { max-width: 100%; display: block; }
     .header-nav.nav-group .nav-link { max-width: none; border-radius: var(--radius-sm); margin: 0; }
     .hide-mobile { display: none !important; }
 
-    .layout-sidebar { grid-template-columns: 1fr; }
-    .sidebar { position: static; }
+    /* minmax(0, 1fr): иначе горизонтальное меню без переносов растягивает колонку шире экрана */
+    .layout-sidebar { grid-template-columns: minmax(0, 1fr); }
+    .sidebar { position: static; min-width: 0; }
     .sidebar .identity-card { display: none; }
     .side-menu { flex-direction: row; overflow-x: auto; }
     .side-menu a, .side-menu button { white-space: nowrap; width: auto; }

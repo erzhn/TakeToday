@@ -12,12 +12,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${title} + ' — TakeToday'">TakeToday</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&family=Space+Grotesk:wght@600;700&family=Tinos:wght@400;700&display=swap">
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
+    <link rel="icon" th:href="@{/favicon.svg}" type="image/svg+xml">
+    <!--/* Шрифты и иконки лежат в проекте (static/fonts) — не зависим от Google Fonts */-->
+    <link rel="preload" th:href="@{/fonts/material-symbols-outlined.woff2}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" th:href="@{/css/fonts.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
     <script th:src="@{/js/app.js}" defer></script>
 </head>
@@ -71,7 +69,6 @@
          th:unless="${headerInfo != null and headerInfo.staff}">
         <div class="header-left">
             <a th:href="@{/}" class="logo">Take<span>Today</span></a>
-            <span class="pill pill-sm hide-mobile">Бишкек</span>
             <span class="pill serif hide-mobile hide-tablet">
                 <span class="material-symbols-outlined icon-sm">location_on</span>Бишкек
                 <span class="material-symbols-outlined icon-sm">expand_more</span>

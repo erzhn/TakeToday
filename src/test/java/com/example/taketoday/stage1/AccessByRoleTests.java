@@ -59,4 +59,26 @@ class AccessByRoleTests extends Stage1TestSupport {
         mvc.perform(get("/css/app.css")).andExpect(status().isOk());
         mvc.perform(get("/js/app.js")).andExpect(status().isOk());
     }
+
+    @Test
+    void futureSectionsShowComingSoonInsteadOf404() throws Exception {
+        UUID buyer = account("buyer@example.com", "Айбек", "CUSTOMER");
+        UUID staff = staffWithVenue("staff@example.com", "Пекарня");
+        mvc.perform(get("/orders").with(as(buyer)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Раздел появится на")));
+        mvc.perform(get("/staff/pickup").with(as(staff))).andExpect(status().isOk());
+        mvc.perform(get("/staff/orders").with(as(staff))).andExpect(status().isOk());
+        mvc.perform(get("/staff/pickup").with(as(buyer))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void fontsAreServedFromTheProject() throws Exception {
+        mvc.perform(get("/fonts/material-symbols-outlined.woff2")).andExpect(status().isOk());
+        mvc.perform(get("/css/fonts.css")).andExpect(status().isOk());
+        UUID buyer = account("buyer@example.com", "Айбек", "CUSTOMER");
+        mvc.perform(get("/profile").with(as(buyer)))
+                .andExpect(content().string(containsString("/css/fonts.css")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("fonts.googleapis.com"))));
+    }
 }

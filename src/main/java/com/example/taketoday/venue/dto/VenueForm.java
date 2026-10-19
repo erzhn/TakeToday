@@ -31,8 +31,10 @@ public class VenueForm {
 
     private District district;
 
-    /** Хранится в establishments.contact — это поле заполняется ещё при регистрации. */
-    @NotBlank(message = "Укажите телефон для связи")
+    /**
+     * Хранится в establishments.contact — это поле заполняется ещё при регистрации.
+     * Обязателен телефон или почта (проверяет VenueService.validate).
+     */
     @Pattern(regexp = ValidationRules.PHONE_REGEX, message = ValidationRules.PHONE_MESSAGE)
     private String phone;
 

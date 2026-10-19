@@ -55,8 +55,13 @@ public class VenueService {
         form.setDescription(e.description());
         form.setAddress(e.address());
         form.setDistrict(e.district());
-        form.setPhone(e.contact());
-        form.setContactEmail(e.contactEmail());
+        // При регистрации в «Контакт» можно указать телефон или почту (форма Жаныбека).
+        // Почту переносим в поле почты, чтобы сотрудник не получил ошибку формата телефона.
+        String contact = e.contact();
+        boolean contactIsEmail = contact != null && contact.contains("@")
+                && !contact.matches(ValidationRules.PHONE_REGEX);
+        form.setPhone(contactIsEmail ? null : contact);
+        form.setContactEmail(e.contactEmail() != null ? e.contactEmail() : (contactIsEmail ? contact : null));
         form.setInstagram(e.instagram());
         List<WorkDayForm> days = new ArrayList<>();
         for (WorkDayForm d : e.workDays()) {
@@ -76,6 +81,12 @@ public class VenueService {
      * Ошибки кладутся под нужное поле, чтобы показать их рядом с ним.
      */
     public void validate(VenueForm form, Errors errors) {
+        if (ValidationRules.trimToNull(form.getPhone()) == null
+                && ValidationRules.trimToNull(form.getContactEmail()) == null
+                && !errors.hasFieldErrors("phone")) {
+            errors.rejectValue("phone", "contact", "Укажите телефон или почту для связи");
+        }
+
         List<WorkDayForm> days = form.getWorkDays();
         if (days == null || days.size() != 7) {
             errors.rejectValue("workDays", "schedule", "Укажите график работы");
@@ -132,18 +143,25 @@ public class VenueService {
                 ValidationRules.trimToNull(form.getDescription()),
                 form.getAddress().trim(),
                 form.getDistrict(),
-                ValidationRules.normalizePhone(form.getPhone()),
+                contactFor(form),
                 lowerOrNull(form.getContactEmail()),
                 normalizeInstagram(form.getInstagram()),
                 logoPath,
                 ScheduleText.of(form.getWorkDays()),
                 null,
-                form.getWorkDays());
+                form.getWorkDays(),
+                true);
         establishments.update(current.id(), updated);
 
         if (oldLogoToDelete != null) {
             storage.delete(oldLogoToDelete);
         }
+    }
+
+    /** Что записать в establishments.contact (обязательное поле): телефон, а если его нет — почту. */
+    private static String contactFor(VenueForm form) {
+        String phone = ValidationRules.normalizePhone(form.getPhone());
+        return phone != null ? phone : lowerOrNull(form.getContactEmail());
     }
 
     private static String lowerOrNull(String value) {
