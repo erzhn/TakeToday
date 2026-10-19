@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
-@WebMvcTest(controllers = HomeController.class, properties = "app.frontend-origin=http://localhost:5173")
+@WebMvcTest(controllers = {HomeController.class, com.example.taketoday.auth.PasswordRecoveryPageController.class}, properties = "app.frontend-origin=http://localhost:5173")
 @Import(SecurityConfig.class)
 class HomePageTests {
     @Autowired MockMvc mvc;
@@ -36,6 +36,17 @@ class HomePageTests {
         for (String path : new String[]{"/api/customer/home", "/api/staff/home", "/api/admin/home", "/api/orders", "/staff", "/admin"}) {
             mvc.perform(get(path)).andExpect(status().isUnauthorized());
         }
+    }
+
+    @Test void recoveryLinkOpensPublicRecoveryForm() throws Exception {
+        mvc.perform(get("/forgot-password"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/index.html#recovery"));
+        mvc.perform(get("/forgot-password").with(user("buyer").roles("CUSTOMER")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/index.html#recovery"));
+        mvc.perform(get("/js/password-recovery.js"))
+                .andExpect(status().isOk());
     }
 
     @Test void panelsRejectOtherRoles() throws Exception {

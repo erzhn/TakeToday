@@ -79,7 +79,7 @@
         </div>
 
         <nav class="nav header-nav" aria-label="Основное меню">
-            <a th:href="@{/}" class="nav-link" th:classappend="${active == 'catalog'} ? 'active'">Каталог предложений</a>
+            <a th:href="@{/catalog}" class="nav-link" th:classappend="${active == 'catalog'} ? 'active'">Каталог предложений</a>
             <a href="/#home" class="nav-link" th:classappend="${active == 'how'} ? 'active'">Как это работает</a>
             <a th:if="${headerInfo != null and headerInfo.customer}"
                th:href="@{/orders}" class="nav-link" th:classappend="${active == 'orders' or active == 'profile'} ? 'active'">Мои заказы</a>

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
  * Подключена только к контроллерам страниц (и страницам ошибок 401/403/404/500), чтобы не делать лишний запрос к базе в каждом REST-вызове.
  */
 @ControllerAdvice(assignableTypes = {ProfileController.class, StaffController.class, AdminController.class,
-        ErrorController.class})
+        ErrorController.class, com.example.taketoday.catalog.CatalogController.class})
 public class CurrentUserAdvice {
 
     /** Через ObjectProvider: в тестах @WebMvcTest сервиса нет, и шапка тогда просто гостевая. */

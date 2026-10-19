@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Каталог предложений')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('catalog')}"></header>
+<main class="container catalog-page">
+    <div class="catalog-intro"><span class="pill pill-green">Бишкек · сегодня и завтра</span>
+        <h1>Хорошая еда ждёт вас</h1><p>Выберите набор со скидкой и заберите его в заведении. Время указано по Бишкеку.</p></div>
+    <form method="get" th:action="@{/catalog}" th:object="${filter}" class="catalog-filters">
+        <label class="catalog-search">Название набора<input type="search" th:field="*{q}" maxlength="150" placeholder="Например, выпечка"></label>
+        <label>Вид еды<select th:field="*{type}"><option value="">Все виды</option><option th:each="type : ${types}" th:value="${type}" th:text="${type.title}"></option></select></label>
+        <label>Цена от, сом<input type="number" th:field="*{minPrice}" min="0" max="100000" placeholder="0"></label>
+        <label>Цена до, сом<input type="number" th:field="*{maxPrice}" min="0" max="100000" placeholder="Любая"></label>
+        <label>Получение с<input type="time" th:field="*{pickupAfter}"></label>
+        <label>Получение до<input type="time" th:field="*{pickupBefore}"></label>
+        <button class="btn btn-primary" type="submit">Найти наборы</button><a th:href="@{/catalog}" class="btn btn-outline">Сбросить</a>
+        <p class="catalog-filter-help">Цена со скидкой. Время: набор можно забрать хотя бы в один момент выбранного интервала.</p>
+        <div th:if="${#fields.hasAnyErrors()}" class="catalog-errors" role="alert">
+            <p>Проверьте фильтры: название до 150 символов, цена от 0 до 100 000 сом, время в формате ЧЧ:ММ.</p>
+            <p th:each="error : ${#fields.errors('*')}" th:text="${error}"></p>
+        </div>
+    </form>
+    <section th:if="${offers.isEmpty()}" class="catalog-empty"><h2>Наборы не найдены</h2><p>Попробуйте изменить фильтры или загляните позже.</p><a th:href="@{/catalog}" class="btn btn-outline">Показать все наборы</a></section>
+    <section class="catalog-grid" aria-label="Предложения еды">
+        <article th:each="offer : ${offers}" class="catalog-card">
+            <a th:href="@{/offers/{id}(id=${offer.id})}" class="catalog-photo"><img th:src="${offer.photoPath}" th:alt="${offer.title}" loading="lazy" width="640" height="420"></a>
+            <div class="catalog-card-body"><span class="pill" th:text="${offer.foodType.title}"></span>
+                <p class="catalog-venue" th:text="${offer.establishmentName}"></p>
+                <h2><a th:href="@{/offers/{id}(id=${offer.id})}" th:text="${offer.title}"></a></h2>
+                <p class="catalog-prices"><strong th:text="${offer.discountPrice} + ' сом'"></strong> <del th:text="${offer.regularPrice} + ' сом'"></del></p>
+                <p>Получение: <span th:text="${offer.pickupStartText}"></span> — <span th:text="${offer.pickupEndText}"></span></p>
+                <p class="catalog-availability" th:classappend="${offer.availablePortions == 0} ? 'catalog-sold-out'" th:text="${offer.availabilityAt(now)}"></p>
+                <a th:href="@{/offers/{id}(id=${offer.id})}" class="btn btn-outline">Подробнее о наборе</a>
+            </div>
+        </article>
+    </section>
+    <nav class="catalog-pagination" aria-label="Страницы каталога">
+        <a th:if="${filter.page > 0}" class="btn btn-outline" th:href="@{/catalog(q=${filter.q},type=${filter.type},minPrice=${filter.minPrice},maxPrice=${filter.maxPrice},pickupAfter=${filter.pickupAfter},pickupBefore=${filter.pickupBefore},page=${filter.page - 1})}">Назад</a>
+        <span th:text="'Страница ' + ${filter.page + 1}"></span>
+        <a th:if="${hasNext}" class="btn btn-outline" th:href="@{/catalog(q=${filter.q},type=${filter.type},minPrice=${filter.minPrice},maxPrice=${filter.maxPrice},pickupAfter=${filter.pickupAfter},pickupBefore=${filter.pickupBefore},page=${filter.page + 1})}">Далее</a>
+    </nav>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body></html>
