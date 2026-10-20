@@ -6,7 +6,7 @@
 <main class="container catalog-page">
     <a th:href="@{/catalog}" class="catalog-back">← Каталог предложений</a>
     <article class="catalog-detail">
-        <img class="catalog-detail-photo" th:src="${offer.photoPath}" th:alt="${offer.title}" width="640" height="420">
+        <div class="catalog-detail-left"><img class="catalog-detail-photo" th:src="${offer.photoPath}" th:alt="${offer.title}" width="640" height="420"><section class="pickup-guide"><h2>Как получить набор</h2><div class="pickup-steps"><div><span>01</span><h3>Выберите набор</h3><p>Посмотрите состав и доступное количество порций.</p></div><div><span>02</span><h3>Проверьте время</h3><p>У каждого набора своё окно самовывоза.</p></div><div><span>03</span><h3>Заберите в заведении</h3><p>Адрес и время получения указаны в карточке.</p></div></div></section><aside class="eco-note"><h3>Хорошей еде — второй шанс</h3><p>Выбирая оставшуюся еду, вы помогаете уменьшать пищевые отходы в Бишкеке.</p></aside></div>
         <div class="catalog-detail-info">
             <span class="pill pill-green" th:text="${offer.foodType.title}"></span>
             <p class="catalog-venue" th:text="${offer.establishmentName}"></p>
@@ -18,7 +18,7 @@
             <p>Окончание: <span th:text="${offer.pickupEndText}"></span></p><p class="catalog-muted">Время по Бишкеку (UTC+6). Самовывоз из заведения.</p>
             <p>Доступных порций: <strong th:text="${offer.availablePortions}"></strong></p>
             <p class="catalog-availability" role="status" th:text="${availability}"></p>
-            <p class="catalog-muted">Бронирование и оплата пока недоступны.</p>
+            <div class="catalog-booking-note"><span class="material-symbols-outlined">info</span><p>Бронирование и оплата пока недоступны.</p></div>
         </div>
     </article>
 </main>
