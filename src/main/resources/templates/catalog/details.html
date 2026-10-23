@@ -18,9 +18,22 @@
             <p>Окончание: <span th:text="${offer.pickupEndText}"></span></p><p class="catalog-muted">Время по Бишкеку (UTC+6). Самовывоз из заведения.</p>
             <p>Доступных порций: <strong th:text="${offer.availablePortions}"></strong></p>
             <p class="catalog-availability" role="status" th:text="${availability}"></p>
-            <div class="catalog-booking-note"><span class="material-symbols-outlined">info</span><p>Бронирование и оплата пока недоступны.</p></div>
+            <section aria-label="Бронирование набора">
+                <label for="reservation-quantity">Количество порций</label>
+                <input id="reservation-quantity" type="number" min="1" step="1" value="1" required
+                       data-reservation-quantity th:max="${offer.availablePortions}"
+                       th:disabled="${offer.availablePortions == 0 or offer.status != 'ACTIVE' or availability == 'Время выдачи завершилось'}">
+                <p aria-live="polite">Итого: <strong data-reservation-total th:attr="data-unit-price=${offer.discountPrice}"
+                    th:text="${offer.discountPrice} + ' сом'"></strong></p>
+                <button type="button" class="btn btn-primary" data-reserve-offer th:attr="data-offer-id=${offer.id}"
+                        th:disabled="${offer.availablePortions == 0 or offer.status != 'ACTIVE' or availability == 'Время выдачи завершилось'}">Оплатить и забронировать</button>
+                <p class="catalog-muted">Бронь выбранных порций действует 3 минуты. Прием оплаты пока не подключен.</p>
+                <p data-reservation-error role="alert" hidden></p>
+                <a href="/#login" data-reservation-login hidden>Войти в учетную запись</a>
+            </section>
         </div>
     </article>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/reservation.js}" defer></script>
 </body></html>
