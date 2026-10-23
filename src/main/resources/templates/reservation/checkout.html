@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Бронирование набора')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('catalog')}"></header>
+<main class="container catalog-page">
+    <link rel="stylesheet" th:href="@{/css/reservation.css}">
+    <a th:href="@{/catalog}" class="catalog-back">← Каталог предложений</a>
+    <section class="reservation-shell" data-reservation-checkout th:attr="data-order-id=${order.id},data-expires-at=${order.expiresAt},data-server-now=${serverNow},data-status=${order.status}">
+        <div class="reservation-summary">
+            <span class="pill pill-green">Бронирование порций</span>
+            <h1 th:text="${order.title}"></h1>
+            <p class="catalog-venue" th:text="${order.establishmentName}"></p>
+            <h2>Где и когда забрать</h2>
+            <p th:text="${order.address}"></p>
+            <p>Начало: <span th:text="${order.pickupStartText}"></span></p>
+            <p>Окончание: <span th:text="${order.pickupEndText}"></span></p>
+            <p class="catalog-muted">Время по Бишкеку (UTC+6). Самовывоз из заведения.</p>
+            <p>Количество порций: <strong th:text="${order.quantity}"></strong></p>
+            <p>Цена за порцию: <span th:text="${order.unitPrice} + ' сом'"></span></p>
+            <h2>Итого к оплате</h2>
+            <p class="catalog-prices"><strong th:text="${order.amount} + ' сом'"></strong></p>
+        </div>
+        <aside class="reservation-panel">
+            <h2 data-reservation-status th:text="${order.statusText}"></h2>
+            <div data-reservation-active th:hidden="${order.status != 'AWAITING_PAYMENT'}">
+                <p>Оставшееся время на оплату</p>
+                <p class="reservation-countdown" data-reservation-timer role="timer" aria-label="Время до окончания брони">3:00</p>
+                <p>Выбранные порции закреплены за вами на 3 минуты. Без подтвержденной оплаты бронь будет снята автоматически.</p>
+                <p class="reservation-payment-note">Прием оплаты пока не подключен. Оплатить этот заказ сейчас нельзя.</p>
+            </div>
+            <p data-reservation-expired th:hidden="${order.status != 'CANCELLED'}">Время на оплату истекло. Бронь снята. Вы можете выбрать доступный набор в каталоге.</p>
+            <p data-reservation-paid th:hidden="${order.status != 'PAID'}">Оплата подтверждена. Выбранные порции закреплены за вашим заказом.</p>
+            <p data-reservation-error role="alert" hidden></p>
+            <a th:href="@{/catalog}" class="btn btn-outline">Вернуться в каталог</a>
+        </aside>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: [th:fragment='footer']}"></footer>
+<script th:src="@{/js/reservation.js}" defer></script>
+</body>
+</html>
