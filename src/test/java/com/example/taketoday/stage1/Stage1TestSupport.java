@@ -35,28 +35,33 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
         "app.admin-password=",
         "app.upload-dir=target/test-uploads"
 })
-abstract class Stage1TestSupport {
+public abstract class Stage1TestSupport {
 
-    static final String PASSWORD = "OldPassword123";
+    protected static final String PASSWORD = "OldPassword123";
 
-    @Autowired WebApplicationContext context;
-    @Autowired JdbcTemplate db;
-    @Autowired PasswordEncoder encoder;
+    @Autowired protected WebApplicationContext context;
+    @Autowired protected JdbcTemplate db;
+    @Autowired protected PasswordEncoder encoder;
 
-    MockMvc mvc;
+    protected MockMvc mvc;
 
     @BeforeEach
-    void cleanDatabase() {
+    protected void cleanDatabase() {
         mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
+        db.update("DELETE FROM audit_log");
+        db.update("DELETE FROM payments");
+        db.update("DELETE FROM reservation_orders");
+        db.update("DELETE FROM offers");
         db.update("DELETE FROM establishment_work_days");
         db.update("DELETE FROM establishments");
         db.update("DELETE FROM auth_challenges");
+        db.update("DELETE FROM password_recovery");
         db.update("DELETE FROM auth_throttle");
         db.update("DELETE FROM accounts");
     }
 
     /** Создаёт подтверждённую учётную запись и возвращает её id. */
-    UUID account(String email, String name, String role) {
+    protected UUID account(String email, String name, String role) {
         UUID id = UUID.randomUUID();
         db.update("INSERT INTO accounts (id, email, password_hash, name, role, verified) VALUES (?, ?, ?, ?, ?, TRUE)",
                 id, email, encoder.encode(PASSWORD), name, role);
@@ -64,23 +69,23 @@ abstract class Stage1TestSupport {
     }
 
     /** Сотрудник вместе с заведением — как после регистрации STAFF у Жаныбека. */
-    UUID staffWithVenue(String email, String venueName) {
+    protected UUID staffWithVenue(String email, String venueName) {
         UUID owner = account(email, "Сотрудник", "STAFF");
         db.update("INSERT INTO establishments (id, owner_id, name, address, contact, working_hours) VALUES (?, ?, ?, ?, ?, ?)",
                 UUID.randomUUID(), owner, venueName, "г. Бишкек, ул. Токтогула, 1", "+996 555 000 111", "9–21");
         return owner;
     }
 
-    Map<String, Object> venueOf(UUID owner) {
+    protected Map<String, Object> venueOf(UUID owner) {
         return db.queryForMap("SELECT * FROM establishments WHERE owner_id = ?", owner);
     }
 
-    Map<String, Object> accountRow(UUID id) {
+    protected Map<String, Object> accountRow(UUID id) {
         return db.queryForMap("SELECT * FROM accounts WHERE id = ?", id);
     }
 
     /** Запрос от имени пользователя (версия входа берётся из базы, как у настоящей сессии). */
-    RequestPostProcessor as(UUID id) {
+    protected RequestPostProcessor as(UUID id) {
         Map<String, Object> row = accountRow(id);
         String role = (String) row.get("role");
         var user = new AuthModels.User(id, (String) row.get("email"), (String) row.get("name"), role,

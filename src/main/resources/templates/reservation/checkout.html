@@ -27,10 +27,26 @@
                 <p>Оставшееся время на оплату</p>
                 <p class="reservation-countdown" data-reservation-timer role="timer" aria-label="Время до окончания брони">3:00</p>
                 <p>Выбранные порции закреплены за вами на 3 минуты. Без подтвержденной оплаты бронь будет снята автоматически.</p>
-                <p class="reservation-payment-note">Прием оплаты пока не подключен. Оплатить этот заказ сейчас нельзя.</p>
+                <!--/* Этап 3 (Эржан): оплата. Ошибка оплаты бронь не снимает — пока идёт таймер, можно повторить */-->
+                <div class="reservation-payment-error" role="alert" th:if="${paymentError}">
+                    <span class="material-symbols-outlined">error</span>
+                    <span th:text="${paymentError}"></span>
+                </div>
+                <form method="post" th:action="@{/reservations/{id}/pay(id=${order.id})}" data-reservation-pay>
+                    <button type="submit" class="btn btn-primary btn-block reservation-pay-button">
+                        <span th:text="${paymentError} ? 'Попробовать оплатить ещё раз — ' : 'Перейти к оплате — '"></span>
+                        <span th:text="${order.amount} + ' сом'"></span>
+                        <span class="material-symbols-outlined icon-sm">arrow_forward</span>
+                    </button>
+                </form>
+                <p class="reservation-payment-note">
+                    <span class="material-symbols-outlined icon-sm">shield</span>
+                    Оплата на защищённой странице платёжной службы. Номер карты не хранится на сервере TakeToday.
+                </p>
             </div>
             <p data-reservation-expired th:hidden="${order.status != 'CANCELLED'}">Время на оплату истекло. Бронь снята. Вы можете выбрать доступный набор в каталоге.</p>
-            <p data-reservation-paid th:hidden="${order.status != 'PAID'}">Оплата подтверждена. Выбранные порции закреплены за вашим заказом.</p>
+            <p data-reservation-paid th:hidden="${order.status != 'PAID'}">Оплата подтверждена. Выбранные порции закреплены за вашим заказом.
+                <a th:href="@{/orders/{id}(id=${order.id})}">Показать код получения</a></p>
             <p data-reservation-error role="alert" hidden></p>
             <a th:href="@{/catalog}" class="btn btn-outline">Вернуться в каталог</a>
         </aside>

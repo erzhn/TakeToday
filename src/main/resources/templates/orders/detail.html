@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* Экран 4 «Заказ оплачен — код получения». Код и QR видит только владелец заказа (OrderController). */-->
+<head th:replace="~{fragments/layout :: head(${'Заказ № ' + order.number})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('orders')}"></header>
+<main class="container page order-page">
+    <link rel="stylesheet" th:href="@{/css/payment.css}">
+
+    <!--/* ===== Оплачен ===== */-->
+    <th:block th:if="${order.paid}">
+        <section class="card order-hero">
+            <span class="order-hero-icon"><span class="material-symbols-outlined icon-fill">check_circle</span></span>
+            <div class="order-hero-text">
+                <h1>Оплата прошла успешно</h1>
+                <p>Заказ подтверждён, порции закреплены за вами</p>
+            </div>
+            <span class="badge status-paid order-status"><span class="dot"></span>Оплачен</span>
+        </section>
+
+        <section class="card order-code-card">
+            <div class="order-code-head">
+                <span class="order-label">Ваш код получения</span>
+                <span class="badge badge-red order-window">
+                    <span class="material-symbols-outlined icon-xs">schedule</span>
+                    Окно выдачи: <span th:text="${order.pickupWindow}">19:00 – 21:00</span>
+                </span>
+            </div>
+            <button type="button" class="order-code" data-copy-code th:attr="data-code=${order.pickupCode}"
+                    aria-label="Скопировать код получения">
+                <span class="order-code-caption">Код для кассира</span>
+                <span class="order-code-value" th:text="${order.codeGroups}">482 913</span>
+                <span class="order-code-hint" data-copy-hint>
+                    <span class="material-symbols-outlined icon-xs">content_copy</span>
+                    Нажмите, чтобы скопировать, или покажите этот экран
+                </span>
+            </button>
+            <div class="order-qr-row">
+                <img class="order-qr" th:src="@{/orders/{id}/qr.png(id=${order.id})}" width="200" height="200"
+                     alt="QR-код заказа для сотрудника заведения">
+                <div class="order-qr-text">
+                    <h2><span class="material-symbols-outlined">qr_code_scanner</span>Быстрая выдача на кассе</h2>
+                    <p>Покажите код или QR-код сотруднику заведения. Сотрудник сверит номер и выдаст заказ.</p>
+                    <p class="order-countdown" data-pickup-countdown
+                       th:attr="data-start=${order.pickupStart},data-end=${order.pickupEnd}">
+                        <span class="material-symbols-outlined icon-xs">timer</span>
+                        <span data-pickup-countdown-text th:text="${order.pickupDay} + ', ' + ${order.pickupWindow}"></span>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card order-info-card">
+            <div class="order-info-head">
+                <h2>Заказ № <span th:text="${order.number}">3F2A91C0</span> <span class="badge badge-soft-dark">Самовывоз</span></h2>
+                <p class="order-total">
+                    <del th:if="${order.saving > 0}" th:text="${order.regularPrice * order.quantity} + ' сом'"></del>
+                    <strong th:text="${order.amount} + ' сом'">250 сом</strong>
+                </p>
+            </div>
+            <div class="order-item">
+                <img th:if="${order.photoPath != null}" th:src="${order.photoPath}" alt="" width="88" height="88">
+                <div>
+                    <h3 th:text="${order.title}">Набор выпечки на вечер</h3>
+                    <p class="muted"><span th:text="${order.establishmentName}">Пекарня</span> ·
+                        <span th:text="${order.quantity}">1</span> порц.</p>
+                    <p class="order-item-tags">
+                        <span class="badge badge-green">Оплачено онлайн</span>
+                        <span class="muted" th:if="${order.saving > 0}">Экономия: <span th:text="${order.saving} + ' сом'"></span></span>
+                        <span class="muted" th:if="${payment != null and payment.cardLast4() != null}">Карта •••• <span th:text="${payment.cardLast4()}"></span></span>
+                    </p>
+                </div>
+            </div>
+            <div class="order-places">
+                <div class="order-place">
+                    <span class="material-symbols-outlined">location_on</span>
+                    <div>
+                        <h3>Адрес получения</h3>
+                        <p th:text="${order.address}">ул. Киевская, 95, Бишкек</p>
+                        <p class="order-map-links">
+                            <a th:href="'https://2gis.kg/bishkek/search/' + ${#uris.escapePathSegment(order.address)}" target="_blank" rel="noopener">2GIS маршрут</a>
+                            <a th:href="'https://yandex.ru/maps/?text=' + ${#uris.escapeQueryParam(order.address)}" target="_blank" rel="noopener">Яндекс Карты</a>
+                        </p>
+                    </div>
+                </div>
+                <div class="order-place">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <div>
+                        <h3>Время выдачи</h3>
+                        <p><strong th:text="${order.pickupDay} + ', ' + ${order.pickupWindow}">Сегодня, 19:00 – 21:00</strong></p>
+                        <p class="muted text-sm">Время по Бишкеку. Просьба прийти без опозданий.</p>
+                    </div>
+                </div>
+            </div>
+            <p class="muted text-sm">Оплачено: <span th:text="${order.paidAtText}"></span></p>
+        </section>
+
+        <section class="card order-steps">
+            <h2>Как получить заказ: 3 простых шага</h2>
+            <div class="order-steps-grid">
+                <div><span class="step-num">1</span><h3>Придите вовремя</h3>
+                    <p><span th:text="${order.address}"></span>, <span th:text="${order.pickupWindow}"></span>.</p></div>
+                <div><span class="step-num">2</span><h3>Покажите код</h3>
+                    <p>Назовите <b th:text="${order.codeGroups}"></b> или дайте отсканировать QR.</p></div>
+                <div><span class="step-num">3</span><h3>Заберите заказ</h3>
+                    <p>Сотрудник отметит заказ выданным. Код одноразовый.</p></div>
+            </div>
+        </section>
+
+        <div class="order-actions">
+            <p class="muted text-sm">Не передавайте код посторонним: по нему выдают ваш заказ.</p>
+            <a th:href="@{/catalog}" class="btn btn-soft">В каталог</a>
+            <a th:href="@{/orders}" class="btn btn-primary">Мои заказы</a>
+        </div>
+    </th:block>
+
+    <!--/* ===== Деньги пришли после окончания брони ===== */-->
+    <section class="card order-late" th:if="${order.latePayment}">
+        <span class="order-hero-icon is-warning"><span class="material-symbols-outlined">currency_exchange</span></span>
+        <h1>Оплата пришла после окончания брони</h1>
+        <p>Время на оплату (3 минуты) истекло раньше, чем платёжная служба подтвердила оплату.
+            Порции вернулись в продажу, поэтому заказ № <b th:text="${order.number}"></b> отменён.</p>
+        <p><b th:text="${order.amount} + ' сом'"></b> вернём на карту<span th:if="${payment != null and payment.cardLast4() != null}"> •••• <span th:text="${payment.cardLast4()}"></span></span>.
+            Статус возврата: <span class="badge status-pending" th:text="${order.refundStatus == 'COMPLETED'} ? 'Возвращено' : 'Ожидает возврата'"></span></p>
+        <a th:href="@{/catalog}" class="btn btn-primary">Выбрать набор в каталоге</a>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/order.js}" defer></script>
+</body>
+</html>

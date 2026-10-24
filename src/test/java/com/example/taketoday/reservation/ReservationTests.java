@@ -35,7 +35,8 @@ class ReservationTests {
     @Autowired ReservationService service;
     @Autowired MockMvc mvc;
     @MockitoBean(name = "reservationClock") Clock clock;
-    final Instant now = Instant.parse("2026-10-23T09:00:00Z");
+    // От текущего времени: карточка набора проверяет окно выдачи по настоящим часам, а не по часам брони
+    final Instant now = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
     UUID owner, venue, offer, customer, other;
     List<UUID> accounts;
 
@@ -52,6 +53,7 @@ class ReservationTests {
                 """, offer, venue, Timestamp.from(now.plusSeconds(3600)), Timestamp.from(now.plusSeconds(7200)));
     }
     @AfterEach void clean() {
+        db.update("DELETE FROM payments WHERE order_id IN (SELECT id FROM reservation_orders WHERE offer_id=?)", offer);
         db.update("DELETE FROM reservation_orders WHERE offer_id=?", offer);
         db.update("DELETE FROM offers WHERE id=?", offer);
         db.update("DELETE FROM establishments WHERE id=?", venue);
@@ -299,7 +301,7 @@ class ReservationTests {
                 .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"))
                 .andExpect(content().string(containsString("Бишкек, Токтогула 1")))
                 .andExpect(content().string(containsString("200 сом")))
-                .andExpect(content().string(containsString("Прием оплаты пока не подключен")))
+                .andExpect(content().string(containsString("Перейти к оплате")))
                 .andReturn();
         assertEquals(1, java.util.regex.Pattern.compile("<footer\\b").matcher(checkout.getResponse().getContentAsString()).results().count());
         // Снимок реального Thymeleaf-ответа для локальной проверки верстки; не входит в исходники.

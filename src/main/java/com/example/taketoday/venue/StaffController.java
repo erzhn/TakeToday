@@ -3,6 +3,8 @@ package com.example.taketoday.venue;
 import com.example.taketoday.common.AppTime;
 import com.example.taketoday.common.CurrentAccount;
 import com.example.taketoday.common.CurrentUserService;
+import com.example.taketoday.offer.OfferRow;
+import com.example.taketoday.offer.OfferService;
 import com.example.taketoday.venue.dto.VenueForm;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 /**
  * Кабинет сотрудника заведения (экран 7) и «Сведения о заведении» (экран 13, п. 4.2.2 ТЗ).
  * Доступ к /staff/** только у роли STAFF — это проверяет SecurityConfig.
@@ -23,17 +27,26 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class StaffController {
 
     private final VenueService venueService;
+    private final OfferService offerService;
     private final CurrentUserService currentUser;
 
-    public StaffController(VenueService venueService, CurrentUserService currentUser) {
+    public StaffController(VenueService venueService, OfferService offerService, CurrentUserService currentUser) {
         this.venueService = venueService;
+        this.offerService = offerService;
         this.currentUser = currentUser;
     }
 
     @GetMapping
     public String home(Model model) {
-        model.addAttribute("venue", venueService.getSummaryForStaff(currentUser.require()));
+        CurrentAccount staff = currentUser.require();
+        List<OfferRow> offers = offerService.listForStaff(staff);
+        model.addAttribute("venue", venueService.getSummaryForStaff(staff));
         model.addAttribute("today", AppTime.today());
+        model.addAttribute("offers", offers);
+        model.addAttribute("liveCount", offers.stream().filter(OfferRow::isLive).count());
+        model.addAttribute("offCount", offers.stream().filter(OfferRow::isOff).count());
+        model.addAttribute("expiredCount", offers.stream().filter(OfferRow::isExpired).count());
+        model.addAttribute("onSaleCount", offers.stream().filter(r -> r.getState() == OfferRow.State.ACTIVE).count());
         return "staff/home";
     }
 

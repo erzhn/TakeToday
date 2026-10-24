@@ -7,6 +7,8 @@
 <!--/* Экран 7 «Кабинет заведения — Дашборд». Цифры и таблица оживут на этапах 2–4. */-->
 <main class="container page">
 
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
     <div class="alert" th:unless="${venue.profileComplete}" style="margin-bottom: 24px">
         <span class="material-symbols-outlined">warning</span>
         <span>Заполните адрес заведения — без него нельзя выставлять предложения.
@@ -74,7 +76,7 @@
                 <span class="stat-label">Активных предложений</span>
                 <span class="stat-icon"><span class="material-symbols-outlined">storefront</span></span>
             </div>
-            <div class="stat-value">0</div>
+            <div class="stat-value" th:text="${onSaleCount}">0</div>
             <div class="stat-caption">Доступно на витрине покупателям</div>
         </div>
         <div class="stat">
@@ -103,23 +105,29 @@
         </div>
     </div>
 
-    <!--/* Управление предложениями — заполняется на этапе 2 */-->
-    <section style="margin-top: 40px">
+    <!--/* Управление предложениями (п. 4.4.2, 4.4.3 ТЗ) */-->
+    <section id="offers" style="margin-top: 40px" data-offers>
         <div class="section-head">
             <div>
                 <h2 class="card-title">Управление предложениями</h2>
                 <p class="card-subtitle sm">Контролируйте доступные наборы, время самовывоза и остатки</p>
             </div>
-            <div class="filter-pills" aria-label="Фильтр предложений">
-                <span class="active">Все (0)</span>
-                <span>Активно (0)</span>
-                <span>Снято (0)</span>
-                <span>Время вышло (0)</span>
+            <div class="offers-tools">
+                <label class="offers-search">
+                    <span class="material-symbols-outlined icon-sm">search</span>
+                    <input type="search" class="input" placeholder="Поиск по названию…" aria-label="Поиск по названию" data-offers-search>
+                </label>
+                <div class="filter-pills" role="tablist" aria-label="Фильтр предложений">
+                    <button type="button" class="active" data-offers-filter="all">Все (<span th:text="${offers.size()}">0</span>)</button>
+                    <button type="button" data-offers-filter="live">Активно (<span th:text="${liveCount}">0</span>)</button>
+                    <button type="button" data-offers-filter="off">Снято (<span th:text="${offCount}">0</span>)</button>
+                    <button type="button" data-offers-filter="expired">Время вышло (<span th:text="${expiredCount}">0</span>)</button>
+                </div>
             </div>
         </div>
 
         <div class="table-card">
-            <table class="table">
+            <table class="table offers-table">
                 <thead>
                 <tr>
                     <th scope="col">Набор и категория</th>
@@ -130,13 +138,60 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
+                <tr th:if="${offers.isEmpty()}">
                     <td colspan="5" class="table-empty">
                         <span class="material-symbols-outlined">inventory_2</span>
                         <strong>Пока нет предложений</strong>
                         Создайте первый набор, чтобы покупатели увидели его в каталоге.
+                        <a th:href="@{/staff/offers/new}" class="btn btn-primary btn-sm" style="margin-top: 12px">
+                            <span class="material-symbols-outlined icon-sm">add_circle</span>Новое предложение
+                        </a>
                     </td>
                 </tr>
+                <tr th:each="o : ${offers}"
+                    th:attr="data-group=${o.live} ? 'live' : (${o.off} ? 'off' : 'expired'),data-title=${#strings.toLowerCase(o.title)}"
+                    th:classappend="${o.live} ? '' : 'is-muted'">
+                    <td data-label="Набор">
+                        <div class="offer-cell">
+                            <span class="offer-thumb">
+                                <img th:if="${o.photoPath}" th:src="${o.photoPath}" alt="" loading="lazy">
+                                <span th:unless="${o.photoPath}" class="material-symbols-outlined" th:text="${o.foodTypeIcon}">bakery_dining</span>
+                            </span>
+                            <div>
+                                <div class="offer-title" th:text="${o.title}">Набор выпечки на вечер</div>
+                                <div class="offer-tags">
+                                    <span class="badge badge-soft" th:text="${o.foodTypeTitle}">Выпечка</span>
+                                    <span class="badge" th:classappend="${o.state.css}" th:text="${o.state.title}">Активно</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td data-label="Стоимость">
+                        <div class="offer-price"><b th:text="${o.discountPrice} + ' с'">250 с</b> <s th:text="${o.regularPrice} + ' с'">500 с</s></div>
+                        <div class="offer-sub" th:classappend="${o.live} ? 'accent'" th:text="${o.state.name() == 'SOLD_OUT'} ? 'Всё продано' : '−' + ${o.discountPercent} + '% скидка'">−50% скидка</div>
+                    </td>
+                    <td data-label="Остаток">
+                        <div class="offer-left"><b th:text="${o.available} + ' из ' + ${o.total}">2 из 5</b><span class="offer-sub">осталось</span></div>
+                        <div class="progress"><span th:style="'width:' + ${o.availablePercent} + '%'"></span></div>
+                        <div class="offer-sub" th:if="${o.reserved > 0 or o.sold > 0}"
+                             th:text="'Бронь: ' + ${o.reserved} + ' · оплачено: ' + ${o.sold}">Бронь: 1 · оплачено: 2</div>
+                    </td>
+                    <td data-label="Выдача">
+                        <div class="offer-time"><span class="material-symbols-outlined icon-sm">schedule</span><span th:text="${o.pickupWindow}">19:00 – 21:00</span></div>
+                        <div class="offer-sub" th:text="${o.expired} ? 'Завершено' : ${o.pickupDay}">Сегодня</div>
+                    </td>
+                    <td data-label="Действия" class="offer-actions-cell">
+                        <a th:if="${o.canEdit}" th:href="@{/staff/offers/{id}/edit(id=${o.id})}" class="btn btn-soft btn-sm">Изменить</a>
+                        <a th:if="${o.canRepeat}" th:href="@{/staff/offers/new(from=${o.id})}" class="btn btn-primary btn-sm">Повторить</a>
+                        <form th:if="${o.canWithdraw}" th:action="@{/staff/offers/{id}/withdraw(id=${o.id})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-sm btn-withdraw">Снять</button>
+                        </form>
+                        <form th:if="${o.canResume}" th:action="@{/staff/offers/{id}/resume(id=${o.id})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-sm btn-resume">Вернуть</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr class="offers-nothing" hidden><td colspan="5" class="table-empty">Ничего не найдено — измените фильтр или поиск.</td></tr>
                 </tbody>
             </table>
         </div>

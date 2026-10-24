@@ -27,7 +27,7 @@
                     th:text="${offer.discountPrice} + ' сом'"></strong></p>
                 <button type="button" class="btn btn-primary" data-reserve-offer th:attr="data-offer-id=${offer.id}"
                         th:disabled="${offer.availablePortions == 0 or offer.status != 'ACTIVE' or availability == 'Время выдачи завершилось'}">Оплатить и забронировать</button>
-                <p class="catalog-muted">Бронь выбранных порций действует 3 минуты. Прием оплаты пока не подключен.</p>
+                <p class="catalog-muted">Бронь выбранных порций действует 3 минуты — за это время нужно оплатить заказ онлайн.</p>
                 <p data-reservation-error role="alert" hidden></p>
                 <a href="/#login" data-reservation-login hidden>Войти в учетную запись</a>
             </section>

@@ -124,7 +124,7 @@ public class ReservationService {
                 WHERE offer_id=? AND status='AWAITING_PAYMENT' AND expires_at<=?
                 """, Integer.class, offerId, Timestamp.from(now));
         db.update("""
-                UPDATE reservation_orders SET status='CANCELLED'
+                UPDATE reservation_orders SET status='CANCELLED', cancel_reason='RESERVATION_EXPIRED'
                 WHERE offer_id=? AND status='AWAITING_PAYMENT' AND expires_at<=?
                 """, offerId, Timestamp.from(now));
         if (released > 0) {

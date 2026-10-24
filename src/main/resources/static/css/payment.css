@@ -1,0 +1,109 @@
+/* Этап 3 (Эржан): страница заказа с кодом получения (экран 4) и учебная страница оплаты. */
+
+/* ---------- Заказ оплачен ---------- */
+.order-page { max-width: 760px; display: grid; gap: 24px; padding-top: 24px; padding-bottom: 48px; }
+.order-page .card + .card { margin-top: 0; }
+.order-hero { display: flex; align-items: center; gap: 16px; }
+.order-hero-icon {
+    width: 56px; height: 56px; flex: 0 0 auto; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--primary-container); color: var(--primary);
+}
+.order-hero-icon .material-symbols-outlined { font-size: 32px; }
+.order-hero-icon.is-warning { background: var(--warning-soft); color: var(--warning); }
+.order-hero-text { flex: 1; }
+.order-hero-text h1 { font-size: clamp(24px, 3.4vw, 30px); }
+.order-hero-text p { color: var(--muted); margin-top: 4px; }
+.order-status { font-size: 15px; padding: 6px 14px; gap: 6px; }
+.order-status .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+.order-code-card { display: grid; gap: 20px; }
+.order-code-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.order-label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.order-window { gap: 4px; padding: 4px 10px; }
+.order-code {
+    display: grid; justify-items: center; gap: 8px; width: 100%;
+    padding: 24px 16px; border: 0; border-radius: var(--radius);
+    background: var(--surface-2); cursor: pointer; font: inherit; color: inherit;
+}
+.order-code:hover { background: var(--surface-3); }
+.order-code:focus-visible { outline: 3px solid rgba(27, 94, 32, .35); outline-offset: 2px; }
+.order-code-caption { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.order-code-value {
+    font-family: var(--font-num); font-weight: 700; color: var(--primary);
+    font-size: clamp(40px, 9vw, 56px); letter-spacing: .12em; font-variant-numeric: tabular-nums;
+}
+.order-code-hint { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); }
+.order-code-hint.is-copied { color: var(--primary); font-weight: 600; }
+.order-qr-row { display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: center; }
+.order-qr { width: 200px; height: 200px; border-radius: var(--radius); box-shadow: var(--shadow-card); image-rendering: pixelated; background: #fff; }
+.order-qr-text { display: grid; gap: 10px; }
+.order-qr-text h2 { display: flex; align-items: center; gap: 8px; font-size: 19px; }
+.order-qr-text h2 .material-symbols-outlined { color: var(--accent); }
+.order-qr-text p { color: var(--muted); line-height: 1.55; }
+.order-countdown { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--text) !important; font-size: 14px; }
+
+.order-info-card { display: grid; gap: 16px; }
+.order-info-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.order-info-head h2 { font-family: var(--font); font-weight: 500; font-size: 22px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.order-total { display: flex; align-items: baseline; gap: 8px; }
+.order-total del { color: var(--muted); font-size: 14px; }
+.order-total strong { font-family: var(--font-num); color: var(--primary); font-size: 24px; }
+.order-item { display: flex; gap: 14px; align-items: center; padding: 12px; border-radius: var(--radius); background: var(--surface-2); }
+.order-item img { width: 88px; height: 88px; object-fit: cover; border-radius: var(--radius-sm); flex: 0 0 auto; }
+.order-item h3 { font-size: 18px; margin-bottom: 2px; }
+.order-item-tags { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 6px; font-size: 13px; }
+.order-places { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.order-place { display: flex; gap: 10px; padding: 16px; border-radius: var(--radius); background: var(--surface-2); }
+.order-place > .material-symbols-outlined { color: var(--primary); }
+.order-place h3 { font-size: 17px; margin-bottom: 4px; }
+.order-map-links { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; font-size: 13px; font-weight: 600; }
+
+.order-steps h2 { font-size: 20px; margin-bottom: 16px; }
+.order-steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.order-steps-grid > div { padding: 14px; border-radius: var(--radius); background: var(--surface-2); display: grid; gap: 6px; align-content: start; }
+.order-steps-grid .step-num {
+    width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    background: var(--primary); color: #fff; font-size: 13px; font-weight: 700;
+}
+.order-steps-grid h3 { font-size: 17px; }
+.order-steps-grid p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.order-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+.order-actions p { margin-right: auto; }
+
+.order-late { display: grid; gap: 14px; justify-items: start; }
+.order-late h1 { font-size: 26px; }
+.order-late p { line-height: 1.6; }
+
+/* ---------- Учебная платёжная служба ---------- */
+.mock-pay-body { background: #eef1f6; }
+.mock-pay { max-width: 480px; padding-top: 32px; padding-bottom: 48px; display: grid; gap: 16px; }
+.mock-pay-banner {
+    display: flex; gap: 8px; align-items: flex-start; padding: 12px 14px;
+    border-radius: var(--radius); background: var(--warning-soft); color: #6b3a06; font-size: 13px; line-height: 1.5;
+}
+.mock-pay-card { display: grid; gap: 12px; padding: 28px; }
+.mock-pay-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.mock-pay-logo { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--info); }
+.mock-pay-timer { font-size: 13px; color: var(--accent-dark); }
+.mock-pay-timer b { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.mock-pay-amount { font-family: var(--font-num); font-size: 40px; font-weight: 700; }
+.mock-pay-amount small { font-size: 20px; color: var(--muted); }
+.mock-pay-errors { background: var(--error-soft); color: #8c1d18; }
+.mock-pay-errors ul { margin: 0; padding-left: 18px; }
+.mock-pay-form { display: grid; gap: 16px; margin-top: 8px; }
+.mock-pay-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mock-pay-form .btn-block { height: 52px; gap: 8px; }
+.mock-pay-cancel { justify-self: center; color: var(--muted); }
+
+@media (max-width: 640px) {
+    .order-hero { flex-wrap: wrap; }
+    .order-hero-text { flex: 1 1 calc(100% - 72px); }
+    .order-status { margin-left: 72px; }
+    .order-countdown { justify-content: center; }
+    .order-qr-row { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+    .order-qr-text h2 { justify-content: center; }
+    .order-places, .order-steps-grid { grid-template-columns: 1fr; }
+    .order-actions .btn { flex: 1; }
+    .mock-pay-card { padding: 20px; }
+}

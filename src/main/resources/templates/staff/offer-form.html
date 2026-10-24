@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${editing} ? 'Изменить предложение' : 'Новое предложение')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('staff')}"></header>
+
+<!--/* Экран 8 «Форма создания набора» (п. 4.4.1, 4.4.2, 5.5.3 ТЗ). Один шаблон для создания и изменения. */-->
+<main class="container page">
+
+    <div th:if="${error}" class="toast toast-error" role="alert">
+        <div class="toast-body">
+            <span class="toast-icon"><span class="material-symbols-outlined">priority_high</span></span>
+            <div>
+                <div class="toast-title">Не получилось сохранить</div>
+                <div class="toast-text" th:text="${error}"></div>
+            </div>
+        </div>
+    </div>
+
+    <th:block th:object="${offerForm}">
+        <div class="toast toast-error" th:if="${#fields.hasAnyErrors()}" role="alert">
+            <div class="toast-body">
+                <span class="toast-icon"><span class="material-symbols-outlined">priority_high</span></span>
+                <div>
+                    <div class="toast-title">Проверьте заполнение</div>
+                    <div class="toast-text">Некоторые поля заполнены неверно — подробности рядом с полями.</div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+
+    <nav class="breadcrumbs" aria-label="Навигационная цепочка">
+        <a th:href="@{/staff}">Кабинет заведения</a>
+        <span class="sep">/</span>
+        <a th:href="@{/staff#offers}">Мои предложения</a>
+        <span class="sep">/</span>
+        <span class="current" th:text="${editing} ? 'Изменить предложение' : 'Новое предложение'">Новое предложение</span>
+    </nav>
+
+    <section class="card card-md offer-head">
+        <div>
+            <div class="offer-head-title">
+                <h1 class="page-title" th:text="${editing} ? 'Изменить предложение' : 'Новое предложение'">Новое предложение</h1>
+                <span class="badge badge-green" th:text="${editing} ? 'Редактирование' : 'Создание набора'">Создание набора</span>
+            </div>
+            <p class="page-subtitle" th:unless="${editing}">
+                Заполните параметры набора со скидкой. Предложение появится в каталоге для покупателей Бишкека сразу после публикации.
+            </p>
+            <p class="page-subtitle" th:if="${editing}">
+                Изменения сразу увидят покупатели. Уже оплаченные заказы останутся в силе.
+            </p>
+        </div>
+        <div class="offer-head-stats" th:if="${editing}">
+            <span class="pill"><span class="material-symbols-outlined icon-sm">hourglass_top</span>В брони: <b th:text="${offer.reservedPortions()}">0</b></span>
+            <span class="pill"><span class="material-symbols-outlined icon-sm">payments</span>Оплачено: <b th:text="${offer.soldPortions()}">0</b></span>
+        </div>
+    </section>
+
+    <div class="offer-layout">
+        <form id="offer-form" class="offer-main" method="post" enctype="multipart/form-data" novalidate
+              th:action="${editing} ? @{/staff/offers/{id}/edit(id=${offer.id()})} : @{/staff/offers/new}"
+              th:object="${offerForm}">
+            <input type="hidden" th:field="*{copyFrom}">
+
+            <!--/* ---------- 1. Основные параметры ---------- */-->
+            <section class="card card-md">
+                <h2 class="card-title-sm offer-section-title">
+                    <span class="material-symbols-outlined">dashboard</span>1. Основные параметры
+                </h2>
+                <div class="form-grid">
+                    <div class="field">
+                        <label class="field-label" for="title"><span>Название набора <span class="required">*</span></span></label>
+                        <input type="text" th:field="*{title}" class="input" maxlength="150" required data-preview="title"
+                               th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'"
+                               placeholder="Свежий вечерний бокс выпечки">
+                        <p class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></p>
+                        <p class="hint" th:unless="${#fields.hasErrors('title')}">Аппетитное и точное название без лишних символов, 3–150 знаков.</p>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="foodType"><span>Вид еды <span class="required">*</span></span></label>
+                        <select th:field="*{foodType}" class="select" required data-preview="foodType"
+                                th:classappend="${#fields.hasErrors('foodType')} ? 'is-invalid'">
+                            <option value="">Выберите вид еды</option>
+                            <option th:each="t : ${foodTypes}" th:value="${t}" th:text="${t.title}">Выпечка</option>
+                        </select>
+                        <p class="field-error" th:if="${#fields.hasErrors('foodType')}" th:errors="*{foodType}"></p>
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="composition">
+                            <span>Состав набора <span class="required">*</span></span>
+                            <span class="field-meta" data-counter-for="composition"><span>0</span> / 1000</span>
+                        </label>
+                        <textarea th:field="*{composition}" class="textarea" rows="4" maxlength="1000" required data-preview="composition"
+                                  th:classappend="${#fields.hasErrors('composition')} ? 'is-invalid'"
+                                  placeholder="2 тандырные слоёные самсы с мясом, 3 сдобные булочки с изюмом, 1 горячая лепёшка"></textarea>
+                        <p class="field-error" th:if="${#fields.hasErrors('composition')}" th:errors="*{composition}"></p>
+                        <p class="hint" th:unless="${#fields.hasErrors('composition')}">Перечислите, что примерно входит в набор, и аллергены, если есть.</p>
+                    </div>
+
+                    <div class="field">
+                        <span class="field-label"><span>Фотография набора <span class="required" th:unless="${editing or photoPath != null}">*</span></span></span>
+                        <div class="photo-upload" th:classappend="${#fields.hasErrors('photo')} ? 'is-invalid'">
+                            <div class="photo-thumb" data-photo-preview>
+                                <img th:if="${photoPath}" th:src="${photoPath}" alt="Фото набора">
+                                <span th:unless="${photoPath}" class="material-symbols-outlined">photo_camera</span>
+                            </div>
+                            <div class="photo-upload-info">
+                                <p class="photo-upload-title" data-photo-name>
+                                    <span class="material-symbols-outlined icon-sm" th:text="${photoPath} ? 'check_circle' : 'image'">image</span>
+                                    <span th:text="${photoPath} ? 'Фотография прикреплена' : 'Фото ещё не добавлено'">Фото ещё не добавлено</span>
+                                </p>
+                                <p class="hint">Реальное фото набора при естественном свете. JPG или PNG, до 5 МБ.</p>
+                                <label class="btn btn-outline btn-sm file-button">
+                                    <span class="material-symbols-outlined icon-sm">upload</span>
+                                    <span th:text="${photoPath} ? 'Заменить фото' : 'Выбрать фото'">Выбрать фото</span>
+                                    <input type="file" name="photo" accept="image/png,image/jpeg" data-photo-input>
+                                </label>
+                            </div>
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('photo')}" th:errors="*{photo}"></p>
+                    </div>
+                </div>
+            </section>
+
+            <!--/* ---------- 2. Цены ---------- */-->
+            <section class="card card-md">
+                <div class="offer-section-head">
+                    <h2 class="card-title-sm offer-section-title">
+                        <span class="material-symbols-outlined">payments</span>2. Цены
+                    </h2>
+                    <span class="badge badge-soft">Цены в целых сомах</span>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        <label class="field-label" for="regularPrice"><span>Обычная цена, сом <span class="required">*</span></span></label>
+                        <div class="input-wrap">
+                            <input type="number" th:field="*{regularPrice}" class="input input-money" min="1" max="100000" step="1"
+                                   inputmode="numeric" required data-preview="regularPrice"
+                                   th:classappend="${#fields.hasErrors('regularPrice')} ? 'is-invalid'" placeholder="500">
+                            <span class="input-trailing muted">сом</span>
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('regularPrice')}" th:errors="*{regularPrice}"></p>
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="discountPrice"><span>Цена со скидкой, сом <span class="required">*</span></span></label>
+                        <div class="input-wrap">
+                            <input type="number" th:field="*{discountPrice}" class="input input-money" min="1" max="100000" step="1"
+                                   inputmode="numeric" required data-preview="discountPrice"
+                                   th:classappend="${#fields.hasErrors('discountPrice')} ? 'is-invalid'" placeholder="250">
+                            <span class="input-trailing muted">сом</span>
+                        </div>
+                        <p class="field-error" th:if="${#fields.hasErrors('discountPrice')}" th:errors="*{discountPrice}"></p>
+                    </div>
+                </div>
+                <div class="discount-box" data-discount-box hidden>
+                    <span class="discount-icon"><span class="material-symbols-outlined">percent</span></span>
+                    <div>
+                        <div class="discount-title">Скидка <span data-discount-percent>−50%</span></div>
+                        <div class="hint">Экономия покупателя: <b data-discount-save>250 сом</b></div>
+                    </div>
+                </div>
+            </section>
+
+            <!--/* ---------- 3. Порции ---------- */-->
+            <section class="card card-md">
+                <div class="offer-section-head">
+                    <h2 class="card-title-sm offer-section-title">
+                        <span class="material-symbols-outlined">inventory_2</span>3. Порции
+                    </h2>
+                    <span class="hint" th:if="${editing}">Забронировано и оплачено: <b th:text="${offer.lockedPortions()}">0</b></span>
+                </div>
+                <div class="portions-row" th:classappend="${#fields.hasErrors('totalPortions')} ? 'is-invalid'">
+                    <div>
+                        <label class="field-label" for="totalPortions"><span>Количество порций <span class="required">*</span></span></label>
+                        <p class="hint">Сколько таких наборов вы готовы собрать к указанному времени (1–100).</p>
+                    </div>
+                    <div class="stepper">
+                        <button type="button" class="stepper-btn" data-step="-1" aria-label="Меньше порций">
+                            <span class="material-symbols-outlined">remove</span>
+                        </button>
+                        <input type="number" th:field="*{totalPortions}" class="stepper-input" min="1" max="100" step="1"
+                               inputmode="numeric" required data-preview="totalPortions"
+                               th:attr="data-min=${editing} ? ${offer.lockedPortions() > 0 ? offer.lockedPortions() : 1} : 1">
+                        <button type="button" class="stepper-btn" data-step="1" aria-label="Больше порций">
+                            <span class="material-symbols-outlined">add</span>
+                        </button>
+                    </div>
+                </div>
+                <p class="field-error" th:if="${#fields.hasErrors('totalPortions')}" th:errors="*{totalPortions}" style="margin-top: 8px"></p>
+            </section>
+
+            <!--/* ---------- 4. Время выдачи ---------- */-->
+            <section class="card card-md">
+                <div class="offer-section-head">
+                    <h2 class="card-title-sm offer-section-title">
+                        <span class="material-symbols-outlined">schedule</span>4. Время выдачи
+                    </h2>
+                    <span class="hint">Часовой пояс: Бишкек (UTC+6)</span>
+                </div>
+                <div class="pickup-grid">
+                    <div class="field">
+                        <label class="field-label" for="pickupDate"><span>Дата <span class="required">*</span></span></label>
+                        <input type="date" th:field="*{pickupDate}" class="input" required data-preview="pickupDate"
+                               th:attr="min=${today}" th:classappend="${#fields.hasErrors('pickupDate')} ? 'is-invalid'">
+                        <p class="field-error" th:if="${#fields.hasErrors('pickupDate')}" th:errors="*{pickupDate}"></p>
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="pickupStart"><span>Начало выдачи <span class="required">*</span></span></label>
+                        <input type="time" th:field="*{pickupStart}" class="input" required data-preview="pickupStart"
+                               th:classappend="${#fields.hasErrors('pickupStart')} ? 'is-invalid'">
+                        <p class="field-error" th:if="${#fields.hasErrors('pickupStart')}" th:errors="*{pickupStart}"></p>
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="pickupEnd"><span>Окончание выдачи <span class="required">*</span></span></label>
+                        <input type="time" th:field="*{pickupEnd}" class="input" required data-preview="pickupEnd"
+                               th:classappend="${#fields.hasErrors('pickupEnd')} ? 'is-invalid'">
+                        <p class="field-error" th:if="${#fields.hasErrors('pickupEnd')}" th:errors="*{pickupEnd}"></p>
+                    </div>
+                </div>
+                <div class="note" style="margin-top: 16px">
+                    <span class="material-symbols-outlined">info</span>
+                    <span>Покупатель приходит в это время и показывает 6-значный код. Предупредите персонал на кассе.</span>
+                </div>
+            </section>
+
+            <div class="offer-actions">
+                <button type="submit" class="btn btn-primary" data-once>
+                    <span class="material-symbols-outlined" th:text="${editing} ? 'save' : 'rocket_launch'">rocket_launch</span>
+                    <span th:text="${editing} ? 'Сохранить изменения' : 'Опубликовать предложение'">Опубликовать предложение</span>
+                </button>
+                <a th:href="@{/staff#offers}" class="btn btn-soft">Отмена</a>
+            </div>
+        </form>
+
+        <!--/* ---------- Как увидит покупатель ---------- */-->
+        <aside class="offer-aside">
+            <section class="card card-md preview-head">
+                <div class="offer-section-head" style="margin-bottom: 4px">
+                    <h2 class="card-title-sm"><span class="material-symbols-outlined">visibility</span>Так увидит покупатель</h2>
+                    <span class="badge badge-red">LIVE</span>
+                </div>
+                <p class="hint">Карточка в каталоге обновляется, пока вы заполняете форму.</p>
+            </section>
+
+            <article class="preview-card" aria-label="Предпросмотр карточки">
+                <div class="preview-photo" data-preview-photo>
+                    <img th:if="${photoPath}" th:src="${photoPath}" alt="">
+                    <span th:unless="${photoPath}" class="material-symbols-outlined">photo_camera</span>
+                    <span class="preview-discount" data-preview-out="discount" hidden>−50%</span>
+                    <span class="preview-left"><span class="dot"></span>Осталось: <span data-preview-out="totalPortions">5</span></span>
+                </div>
+                <div class="preview-body">
+                    <span class="badge badge-soft-dark preview-type">
+                        <span data-preview-out="foodType">Вид еды</span> · <span th:text="${venue.name}">Пекарня</span>
+                    </span>
+                    <h3 class="preview-title" data-preview-out="title">Название набора</h3>
+                    <p class="preview-venue"><span class="material-symbols-outlined icon-xs">storefront</span>
+                        <span th:text="${venue.name} + (${venue.address} != null ? ' · ' + ${venue.address} : '')">Пекарня · ул. Киевская, 95</span></p>
+                    <p class="preview-composition" data-preview-out="composition">Состав набора</p>
+                    <p class="preview-time"><span class="material-symbols-outlined icon-sm">schedule</span>
+                        <span data-preview-out="when">Сегодня 19:00 – 21:00</span></p>
+                    <div class="preview-price">
+                        <b><span data-preview-out="discountPrice">0</span> сом</b>
+                        <s><span data-preview-out="regularPrice">0</span> сом</s>
+                    </div>
+                    <button type="button" class="btn btn-block preview-book" disabled>Забронировать</button>
+                </div>
+            </article>
+
+            <section class="card card-md" th:if="${editing and offer.status().name() != 'HIDDEN'}">
+                <h2 class="card-title-sm" style="margin-bottom: 8px">Продажа</h2>
+                <form th:if="${offer.status().name() == 'ACTIVE'}" th:action="@{/staff/offers/{id}/withdraw(id=${offer.id()})}" method="post">
+                    <p class="hint" style="margin-bottom: 12px">Новые брони станут невозможны. Оплаченные заказы нужно выдать как обычно.</p>
+                    <button type="submit" class="btn btn-outline btn-block btn-danger-outline">
+                        <span class="material-symbols-outlined">pause</span>Снять с продажи
+                    </button>
+                </form>
+                <form th:if="${offer.status().name() == 'WITHDRAWN'}" th:action="@{/staff/offers/{id}/resume(id=${offer.id()})}" method="post">
+                    <p class="hint" style="margin-bottom: 12px">Предложение снято с продажи и не видно в каталоге.</p>
+                    <button type="submit" class="btn btn-outline btn-block">
+                        <span class="material-symbols-outlined">play_arrow</span>Вернуть в продажу
+                    </button>
+                </form>
+            </section>
+            <div class="alert" th:if="${editing and offer.status().name() == 'HIDDEN'}">
+                <span class="material-symbols-outlined">block</span>
+                <span>Предложение скрыто администратором и не видно покупателям. Вернуть его в продажу может только администратор.</span>
+            </div>
+        </aside>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footerBusiness}"></footer>
+</body>
+</html>

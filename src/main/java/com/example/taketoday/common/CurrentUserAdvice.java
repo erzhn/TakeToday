@@ -1,6 +1,7 @@
 package com.example.taketoday.common;
 
 import com.example.taketoday.admin.AdminController;
+import com.example.taketoday.offer.StaffOfferController;
 import com.example.taketoday.profile.ProfileController;
 import com.example.taketoday.venue.StaffController;
 import org.springframework.beans.factory.ObjectProvider;
@@ -13,7 +14,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
  * Подключена только к контроллерам страниц (и страницам ошибок 401/403/404/500), чтобы не делать лишний запрос к базе в каждом REST-вызове.
  */
 @ControllerAdvice(assignableTypes = {ProfileController.class, StaffController.class, AdminController.class,
-        ComingSoonController.class, ErrorController.class, com.example.taketoday.catalog.CatalogController.class})
+        StaffOfferController.class, ComingSoonController.class, ErrorController.class,
+        com.example.taketoday.catalog.CatalogController.class,
+        com.example.taketoday.payment.OrderController.class,
+        com.example.taketoday.payment.mock.MockPaymentController.class})
 public class CurrentUserAdvice {
 
     /** Через ObjectProvider: в тестах @WebMvcTest сервиса нет, и шапка тогда просто гостевая. */
