@@ -16,7 +16,7 @@ public class SecurityConfig {
  @Bean SecurityFilterChain security(HttpSecurity http, SecurityContextRepository repository, org.springframework.jdbc.core.JdbcTemplate db) throws Exception {
  return http.addFilterAfter(new SessionGuard(db),org.springframework.security.web.context.SecurityContextHolderFilter.class).cors(c -> {}).securityContext(c -> c.securityContextRepository(repository))
  .authorizeHttpRequests(a -> a.requestMatchers("/", "/catalog", "/offers/*", "/images/**", "/index.html", "/forgot-password", "/styles.css", "/app.js", "/css/**", "/js/**", "/fonts/**", "/uploads/**", "/favicon.ico", "/favicon.svg", "/api/auth/**", "/api/public/**", "/error").permitAll()
- .requestMatchers("/api/customer/**", "/api/orders/**").hasRole("CUSTOMER")
+ .requestMatchers("/api/customer/**", "/api/orders/**", "/orders/**", "/mock-pay/**").hasRole("CUSTOMER")
  .requestMatchers("/staff", "/staff/**", "/api/staff/**").hasRole("STAFF")
  .requestMatchers("/admin", "/admin/**", "/api/admin/**").hasRole("ADMIN").anyRequest().authenticated())
  .exceptionHandling(e -> e.authenticationEntryPoint((q,s,x)->s.sendError(401,"Войдите в учетную запись"))

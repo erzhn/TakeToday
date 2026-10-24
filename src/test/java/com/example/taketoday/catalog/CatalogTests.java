@@ -96,7 +96,7 @@ class CatalogTests {
         f.setPage(2); assertEquals(2,find(f).size());
     }
     @Test void guestCanRenderCatalogAndDetailsWithDatabaseValues() throws Exception {
-        mvc.perform(get("/catalog")).andExpect(status().isOk()).andExpect(content().string(containsString("Хорошая еда ждёт вас")));
+        mvc.perform(get("/catalog")).andExpect(status().isOk()).andExpect(content().string(containsString("Вкусная еда со скидкой")));
         mvc.perform(get("/offers/"+bread)).andExpect(status().isOk())
                 .andExpect(content().string(containsString("Свежая выпечка")))
                 .andExpect(content().string(containsString("Мука, молоко, яйца")))

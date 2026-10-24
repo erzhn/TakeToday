@@ -80,6 +80,8 @@
                 credentials: 'same-origin', cache: 'no-store'
             }));
             status = data.order.status;
+            // Этап 3: оплата подтверждена (например, в другой вкладке) — сразу к коду получения
+            if (status === 'PAID') { location.assign('/orders/' + checkout.dataset.orderId); return; }
             expiresAt = Date.parse(data.order.expiresAt);
             serverTime = Date.parse(data.serverNow);
             receivedAt = performance.now();

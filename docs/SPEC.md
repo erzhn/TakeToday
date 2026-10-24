@@ -185,26 +185,13 @@ audit/         журнал событий (п. 5.3.4)                          
 
 **Как появляется заведение:** при регистрации с ролью «Я представляю заведение» `AuthService` (Жаныбек) создаёт строку `establishments` с названием, адресом, контактом и текстом графика. Строк в `establishment_work_days` пока нет — страница показывает график по умолчанию (все дни 09:00–21:00), и он сохраняется при первом сохранении «Сведений».
 
-### 5.3 `offers` — предложения (Эржан, этап 2)
+### 5.3 `offers` — предложения ✅ (таблица — Жаныбек, V5; кабинет заведения — Эржан)
 
-| Поле | Тип | Описание |
-|---|---|---|
-| id | uuid PK | |
-| establishment_id | uuid FK → establishments | Чьё |
-| title | varchar(150) | Название набора |
-| composition | text | Состав |
-| food_type | varchar(20) | `BAKERY` выпечка, `HOT` горячее, `SALAD` салаты, `DESSERT` десерты, `SUSHI` суши, `DRINKS` напитки |
-| photo_path | varchar(255) | Путь к фото |
-| regular_price | int | Обычная цена, сом |
-| discount_price | int | Цена со скидкой, сом |
-| total_portions | int | Сколько всего порций выставлено |
-| reserved_portions | int default 0 | Сейчас в брони (ждут оплаты) |
-| sold_portions | int default 0 | Оплачено |
-| pickup_start | timestamptz | Начало выдачи |
-| pickup_end | timestamptz | Конец выдачи |
-| status | varchar(20) | `ACTIVE` / `WITHDRAWN` (снято сотрудником) / `HIDDEN` (скрыто админом) |
-| created_at, updated_at | timestamptz | |
-| version | bigint | Для защиты от одновременного изменения (`@Version`) |
+Схема — `V5__offers.sql`, полное описание полей — в README («Каталог и база предложений»). Вторую таблицу не создаём.
+
+- `photo_path` хранит **адрес картинки целиком**: `/uploads/offers/<uuid>.jpg` — загруженные сотрудником, `/images/offers/*.jpg` — демо-фото.
+- `version` растёт на 1 при каждом изменении из кабинета; форма изменения отправляет версию, и чужие изменения не затираются.
+- Классы: `Offer` + `OfferRepository` — публичная проекция для каталога (Жаныбек); `StaffOffer` + `StaffOfferRepository` — полная строка для кабинета и счётчики порций (Эржан).
 
 **Доступно для продажи** = `total_portions − reserved_portions − sold_portions`.
 
@@ -398,6 +385,19 @@ public interface PaymentGateway {
 
 **Время:** проверка наличия и запуск оплаты — до 0,3 с (п. 5.1.1). Учебная служба отвечает мгновенно, главное — не делать лишних запросов к базе.
 
+**✅ Как сделано на этапе 3 (Эржан)** — с учётом брони Жаныбека (`reservation_orders`, статус `AWAITING_PAYMENT`, страница `/reservations/{id}`):
+
+| Что | Где |
+|---|---|
+| Кнопка «Перейти к оплате — N сом», ошибка оплаты и «Попробовать оплатить ещё раз» | `reservation/checkout.html` (страница Жаныбека), `POST /reservations/{id}/pay` → `OrderController` |
+| Начало оплаты: проверка владельца и срока брони, сумма только из заказа, старая незавершённая попытка → `CANCELLED` | `PaymentService.start` |
+| Учебная служба (без логотипов настоящих брендов), Луна, срок ММ/ГГ, CVV, кнопка «Отменить оплату» | `MockPaymentGateway`, `MockPaymentController`, `MockCard`, `payment/mock-pay.html` |
+| Результат оплаты (как уведомление банка): сначала `FOR UPDATE` строки `offers`, потом платежа; повтор → `PAYMENT_DUPLICATE`; успех → `PAID`, код, `reserved −= q`, `sold += q`; после срока → `CANCELLED / LATE_PAYMENT`, `refund_status = PENDING` | `PaymentService.complete` |
+| Журнал: `PAYMENT_STARTED`, `PAYMENT_SUCCEEDED`, `PAYMENT_FAILED`, `PAYMENT_DUPLICATE`, `LATE_PAYMENT`, `PAYMENT_UNAVAILABLE`, `ERROR` | таблица `audit_log` (V8), `AuditLog` |
+| «Платёжная служба временно недоступна» | `PAYMENT_MOCK_AVAILABLE=false` (`app.payment.mock.available`) |
+
+Отдельного `POST /payments/callback` нет: учебная служба вызывает `PaymentService.complete` напрямую. Метод можно вызывать повторно — это и есть защита от повторных сообщений.
+
 ---
 
 ## 9. Код получения и QR-код
@@ -424,6 +424,8 @@ public interface PaymentGateway {
 | Статус `CANCELLED` | «Заказ отменен» |
 | Статус `PICKUP_EXPIRED` или сейчас > `pickup_end` | «Время получения истекло» |
 | Статус не `PAID` | «Заказ не оплачен» |
+
+**✅ Как сделано на этапе 3 (Эржан):** код — `PickupCodeGenerator` (уникален среди `PAID`), QR — `GET /orders/{id}/qr.png` (только ZXing `core` + `ImageIO`, без `javase`; `Cache-Control: no-store`). В QR зашито `TAKETODAY:{orderId}:{код}` — сотрудник на этапе 4 сразу видит нужный заказ. Страница `/orders/{id}` (экран 4) — `orders/detail.html`; чужой заказ → 404, сотрудник → 403, неоплаченный → перенаправление на `/reservations/{id}`.
 
 Подтверждение выдачи — отдельный `POST /staff/pickup/{orderId}/confirm`. Внутри снова все проверки + смена статуса через `UPDATE orders SET status='ISSUED' ... WHERE id=? AND status='PAID'`. Повторное нажатие кнопки ничего не сломает: второй раз обновится 0 строк → «Заказ уже выдан» (п. 5.3.2).
 
@@ -541,10 +543,10 @@ public interface NotificationService {
 | ✅ `ValidationRules` — общие правила и тексты: `PASSWORD_MIN`, `PASSWORD_MESSAGE`, `fitsPasswordBytes()`, `PHONE_REGEX`, `normalizePhone()`, `PASSWORDS_MISMATCH` | Регистрация, сброс пароля | 1 |
 | ✅ `FileStorageService.validateImage / saveImage / delete` — загрузка картинок | Пригодится для любых файлов | 1 |
 | ✅ `fragments/layout.html` (шапка, уведомления, подвал) и `css/app.css` | Свои страницы Thymeleaf в том же стиле | 1 |
-| `OfferRepository` / `OfferService.findForCatalog(CatalogFilter): Page<Offer>` | Каталог. Фильтр и запрос пишет Жаныбек, сущность — Эржан | 2 |
-| `OfferService.getPublic(UUID id): Offer` | Страница набора | 2 |
-| `OfferService.tryReserve(UUID offerId): boolean` | Бронь | 3 |
-| `OfferService.releaseReserved(UUID offerId)` | Снятие брони | 3 |
+| ✅ `OfferService.tryReserve(UUID offerId): boolean` — одна порция в бронь одним `UPDATE` с условием | Бронь | 3 |
+| ✅ `OfferService.releaseReserved(UUID offerId): boolean` — бронь снята, порция снова в продаже | Снятие брони | 3 |
+| ✅ `OfferService.confirmSold(UUID offerId): boolean` — бронь → продано (повторный вызов вернёт `false`) | Оплата | 3 |
+| ✅ `OfferService.returnSold(UUID offerId): boolean` — оплаченный заказ отменён вовремя | Отмена | 5 |
 | `AuditService.log(...)` | Журнал | 3 |
 
 ### Жаныбек даёт Эржану
@@ -706,14 +708,11 @@ public interface NotificationService {
 
 | Задача | Кто | ТЗ |
 |---|---|---|
-| Таблица и сущность `offers`, загрузка фото | Эржан | 4.4.1 |
-| Форма нового предложения с проверками | Эржан | 4.4.1, 5.5.3 |
-| Список и изменение своих предложений | Эржан | 4.4.2 |
-| Снятие с продажи | Эржан | 4.4.3 |
-| Каталог с карточками | Жаныбек | 4.3.1 |
-| Поиск и фильтры | Жаныбек | 4.3.2 |
-| Страница набора, запрет брони для закончившихся/снятых/просроченных | Жаныбек | 4.3.3, 4.3.4 |
-| Тестовые предложения в профиле `dev` | Эржан | — |
+| ✅ Таблица `offers` (V5), каталог, поиск, фильтры, страница набора, демо-наборы в `dev` | Жаныбек | 4.3.1–4.3.4 |
+| ✅ Форма нового предложения с фото и проверками (`/staff/offers/new`) | Эржан | 4.4.1, 5.5.3 |
+| ✅ Список своих предложений в кабинете (`/staff`), изменение (`/staff/offers/{id}/edit`), «Повторить» прошедший набор | Эржан | 4.4.2 |
+| ✅ Снять с продажи / вернуть в продажу | Эржан | 4.4.3 |
+| ✅ Счётчики порций для брони и оплаты (`tryReserve`, `releaseReserved`, `confirmSold`, `returnSold`) | Эржан | 4.5.3 |
 
 **Зависимость:** каталогу нужна сущность `Offer` — Эржан вливает её в `develop` **в первые 2–3 дня**, форму можно доделывать позже.
 

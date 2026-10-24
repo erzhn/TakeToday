@@ -31,7 +31,8 @@ spring:
   # Загрузка файлов
   servlet:
     multipart:
-      max-file-size: 5MB
+      # 6 МБ: файл чуть больше 5 МБ дойдёт до проверки и получит понятное сообщение «Файл больше 5 МБ»
+      max-file-size: 6MB
       max-request-size: 10MB
 
   # Профиль разработки
@@ -75,3 +76,8 @@ app:
 
   # Папка для логотипов заведений (раздаётся по адресу /uploads/**)
   upload-dir: ${UPLOAD_DIR:uploads}
+
+  # Учебная платёжная служба (этап 3). false — проверить сообщение «Платёжная служба временно недоступна»
+  payment:
+    mock:
+      available: ${PAYMENT_MOCK_AVAILABLE:true}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/*
+  Учебная платёжная служба (MockPaymentController) — вместо страницы банка. Настоящие деньги не списываются,
+  полный номер карты и CVV не сохраняются (только последние 4 цифры).
+*/-->
+<head th:replace="~{fragments/layout :: head('Оплата заказа')}"></head>
+<body class="mock-pay-body">
+<main class="container page mock-pay">
+    <link rel="stylesheet" th:href="@{/css/payment.css}">
+    <div class="mock-pay-banner" role="note">
+        <span class="material-symbols-outlined">info</span>
+        <span>Учебная платёжная служба TakeToday. Деньги не списываются. Карта для успешной оплаты:
+            <b th:text="${successCard}"></b>, для отказа «недостаточно средств»: <b th:text="${declinedCard}"></b>.
+            Срок — любой будущий, CVV — любые 3 цифры.</span>
+    </div>
+
+    <section class="card mock-pay-card" data-mock-pay
+             th:attr="data-expires-at=${order.expiresAt},data-server-now=${serverNow}">
+        <div class="mock-pay-head">
+            <span class="mock-pay-logo"><span class="material-symbols-outlined">shield_lock</span>Учебная платёжная служба</span>
+            <span class="mock-pay-timer" th:if="${order.awaitingPayment}">Бронь: <b data-mock-timer>3:00</b></span>
+        </div>
+        <p class="muted">Получатель: TakeToday · заказ № <span th:text="${order.number}"></span></p>
+        <p class="mock-pay-amount"><span th:text="${order.amount}">250</span> <small>сом</small></p>
+        <p class="muted" th:text="${order.title} + ' — ' + ${order.establishmentName}"></p>
+
+        <div class="alert mock-pay-errors" role="alert" th:if="${errors != null}">
+            <span class="material-symbols-outlined">error</span>
+            <ul><li th:each="e : ${errors}" th:text="${e}"></li></ul>
+        </div>
+
+        <form method="post" th:action="@{/mock-pay/{id}(id=${payment.providerPaymentId})}" class="mock-pay-form" data-mock-form>
+            <label class="field">
+                <span class="field-label">Номер карты</span>
+                <input class="input" name="cardNumber" inputmode="numeric" autocomplete="cc-number"
+                       placeholder="0000 0000 0000 0000" maxlength="23" required th:value="${cardNumber}" data-card-number>
+            </label>
+            <div class="mock-pay-row">
+                <label class="field">
+                    <span class="field-label">Срок действия</span>
+                    <input class="input" name="expiry" inputmode="numeric" autocomplete="cc-exp"
+                           placeholder="ММ/ГГ" maxlength="5" required th:value="${expiry}" data-card-expiry>
+                </label>
+                <label class="field">
+                    <span class="field-label">CVV</span>
+                    <input class="input" name="cvv" type="password" inputmode="numeric" autocomplete="cc-csc"
+                           placeholder="•••" maxlength="3" required>
+                </label>
+            </div>
+            <button type="submit" name="action" value="pay" class="btn btn-primary btn-block" data-mock-submit>
+                <span class="material-symbols-outlined icon-sm">lock</span>
+                Оплатить <span th:text="${order.amount} + ' сом'"></span>
+            </button>
+            <button type="submit" name="action" value="cancel" class="link-button mock-pay-cancel" formnovalidate>
+                Отменить оплату и вернуться
+            </button>
+        </form>
+        <p class="hint"><span class="material-symbols-outlined icon-xs">shield</span>
+            TakeToday не получает и не хранит номер карты и CVV — только последние 4 цифры для чека.</p>
+    </section>
+</main>
+<script th:src="@{/js/order.js}" defer></script>
+</body>
+</html>

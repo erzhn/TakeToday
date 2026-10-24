@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Сохраняет загруженные картинки (логотипы заведений, позже — фото предложений) в папку app.upload-dir.
+ * Сохраняет загруженные картинки (логотипы заведений, фото предложений) в папку app.upload-dir.
  * Файл получает случайное имя, поэтому пользователь не может подменить чужой файл или задать опасное имя.
  * Отдаются файлы по адресу /uploads/{путь} — см. WebConfig.
  */
@@ -50,7 +50,29 @@ public class FileStorageService {
         if (file.getSize() > maxBytes) {
             return "Файл больше " + (maxBytes / (1024 * 1024)) + " МБ";
         }
+        if (!looksLikeImage(file, type)) {
+            return "Только JPG или PNG";
+        }
         return null;
+    }
+
+    /**
+     * Тип файла присылает браузер, и его можно подделать. Поэтому смотрим ещё и на первые байты:
+     * JPG начинается с FF D8 FF, PNG — с 89 50 4E 47.
+     */
+    private static boolean looksLikeImage(MultipartFile file, String type) {
+        byte[] head = new byte[4];
+        try (InputStream in = file.getInputStream()) {
+            if (in.readNBytes(head, 0, 4) < 3) {
+                return false;
+            }
+        } catch (IOException e) {
+            return false;
+        }
+        if ("image/png".equals(type)) {
+            return (head[0] & 0xFF) == 0x89 && head[1] == 'P' && head[2] == 'N' && head[3] == 'G';
+        }
+        return (head[0] & 0xFF) == 0xFF && (head[1] & 0xFF) == 0xD8 && (head[2] & 0xFF) == 0xFF;
     }
 
     /**

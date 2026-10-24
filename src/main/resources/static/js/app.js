@@ -122,4 +122,118 @@ document.addEventListener('DOMContentLoaded', function () {
             preview.appendChild(img);
         });
     });
+
+    // ---------- Этап 2: таблица предложений — фильтр «Все / Активно / Снято / Время вышло» и поиск ----------
+    document.querySelectorAll('[data-offers]').forEach(function (section) {
+        var rows = section.querySelectorAll('tbody tr[data-group]');
+        var nothing = section.querySelector('.offers-nothing');
+        var search = section.querySelector('[data-offers-search]');
+        var current = 'all';
+        function apply() {
+            var q = (search && search.value || '').trim().toLowerCase();
+            var shown = 0;
+            rows.forEach(function (row) {
+                var ok = (current === 'all' || row.getAttribute('data-group') === current)
+                    && (!q || row.getAttribute('data-title').indexOf(q) !== -1);
+                row.hidden = !ok;
+                if (ok) shown++;
+            });
+            if (nothing) nothing.hidden = shown > 0 || rows.length === 0;
+        }
+        section.querySelectorAll('[data-offers-filter]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                section.querySelectorAll('[data-offers-filter]').forEach(function (b) { b.classList.remove('active'); });
+                button.classList.add('active');
+                current = button.getAttribute('data-offers-filter');
+                apply();
+            });
+        });
+        if (search) search.addEventListener('input', apply);
+    });
+
+    // ---------- Этап 2: форма предложения ----------
+    var offerForm = document.getElementById('offer-form');
+    if (offerForm) {
+        var DAY = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' });
+        function val(name) {
+            var el = offerForm.querySelector('[data-preview="' + name + '"]');
+            if (!el) return '';
+            if (el.tagName === 'SELECT') return el.value ? el.options[el.selectedIndex].text : '';
+            return el.value.trim();
+        }
+        function out(name, text) {
+            document.querySelectorAll('[data-preview-out="' + name + '"]').forEach(function (el) { el.textContent = text; });
+        }
+        function dayLabel(iso) {
+            if (!iso) return '';
+            var d = new Date(iso + 'T00:00:00');
+            var today = new Date(); today.setHours(0, 0, 0, 0);
+            var diff = Math.round((d - today) / 86400000);
+            return diff === 0 ? 'Сегодня' : diff === 1 ? 'Завтра' : DAY.format(d);
+        }
+        function updatePreview() {
+            out('title', val('title') || 'Название набора');
+            out('foodType', val('foodType') || 'Вид еды');
+            out('composition', val('composition') || 'Состав набора');
+            out('totalPortions', val('totalPortions') || '0');
+            var regular = parseInt(val('regularPrice'), 10);
+            var discount = parseInt(val('discountPrice'), 10);
+            out('regularPrice', isNaN(regular) ? '0' : String(regular));
+            out('discountPrice', isNaN(discount) ? '0' : String(discount));
+            var box = document.querySelector('[data-discount-box]');
+            var badge = document.querySelector('[data-preview-out="discount"]');
+            var valid = !isNaN(regular) && !isNaN(discount) && regular > 0 && discount > 0 && discount < regular;
+            if (box) box.hidden = !valid;
+            if (badge) badge.hidden = !valid;
+            if (valid) {
+                var percent = '−' + Math.round(100 * (regular - discount) / regular) + '%';
+                document.querySelectorAll('[data-discount-percent]').forEach(function (el) { el.textContent = percent; });
+                document.querySelectorAll('[data-discount-save]').forEach(function (el) { el.textContent = (regular - discount) + ' сом'; });
+                if (badge) badge.textContent = percent;
+            }
+            var start = val('pickupStart'), end = val('pickupEnd');
+            out('when', (dayLabel(val('pickupDate')) + ' ' + (start || '--:--') + ' – ' + (end || '--:--')).trim());
+        }
+        offerForm.addEventListener('input', updatePreview);
+        offerForm.addEventListener('change', updatePreview);
+        updatePreview();
+
+        // Кнопки − / + у количества порций (не меньше уже забронированных и оплаченных)
+        var portions = offerForm.querySelector('.stepper-input');
+        offerForm.querySelectorAll('[data-step]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var min = parseInt(portions.getAttribute('data-min') || '1', 10);
+                var next = (parseInt(portions.value, 10) || 0) + parseInt(button.getAttribute('data-step'), 10);
+                portions.value = String(Math.max(min, Math.min(100, next)));
+                updatePreview();
+            });
+        });
+
+        // Новое фото: показываем сразу в форме и в карточке
+        var photoInput = offerForm.querySelector('[data-photo-input]');
+        if (photoInput) {
+            photoInput.addEventListener('change', function () {
+                var file = photoInput.files && photoInput.files[0];
+                if (!file || !/^image\/(png|jpeg)$/.test(file.type)) return;
+                var url = URL.createObjectURL(file);
+                document.querySelectorAll('[data-photo-preview], [data-preview-photo]').forEach(function (box) {
+                    var img = box.querySelector('img');
+                    if (!img) {
+                        img = document.createElement('img');
+                        img.alt = '';
+                        var placeholder = box.querySelector(':scope > .material-symbols-outlined');
+                        if (placeholder) placeholder.remove();
+                        box.insertBefore(img, box.firstChild);
+                    }
+                    img.src = url;
+                });
+                var name = offerForm.querySelector('[data-photo-name]');
+                if (name) {
+                    name.querySelector('.material-symbols-outlined').textContent = 'check_circle';
+                    name.lastElementChild.textContent = 'Выбрано: ' + file.name;
+                }
+            });
+        }
+    }
 });
+
