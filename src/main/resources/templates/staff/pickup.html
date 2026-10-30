@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* Экран 9 «Выдача заказа и QR-сканер» (этап 4, Эржан). Логика — PickupService. */-->
+<head th:replace="~{fragments/layout :: head('Выдача заказа')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('pickup')}"></header>
+<main class="container page pickup-page">
+    <link rel="stylesheet" th:href="@{/css/pickup.css}">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Выдача заказа</h1>
+            <p class="page-subtitle">Отсканируйте QR-код с телефона покупателя или введите 6 цифр кода</p>
+        </div>
+        <div class="pickup-stats" aria-label="Смена сегодня">
+            <span><b th:text="${stats.issuedCount}">0</b> выдано</span>
+            <span><b th:text="${stats.waiting}">0</b> ждут</span>
+            <span><b th:text="${stats.paidCount}">0</b> оплачено сегодня</span>
+        </div>
+    </div>
+
+    <div class="pickup-grid">
+        <!--/* ---------- Слева: камера и ручной ввод ---------- */-->
+        <section class="card pickup-input" data-pickup>
+            <div class="scanner" data-scanner>
+                <video class="scanner-video" data-scanner-video playsinline muted hidden></video>
+                <canvas data-scanner-canvas hidden></canvas>
+                <div class="scanner-frame" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                <div class="scanner-idle" data-scanner-idle>
+                    <span class="material-symbols-outlined">qr_code_scanner</span>
+                    <p>Наведите камеру на QR-код в приложении покупателя</p>
+                    <button type="button" class="btn btn-primary" data-scanner-start>
+                        <span class="material-symbols-outlined icon-sm">photo_camera</span>Включить камеру
+                    </button>
+                </div>
+                <button type="button" class="btn btn-soft btn-sm scanner-stop" data-scanner-stop hidden>
+                    <span class="material-symbols-outlined icon-sm">close</span>Выключить камеру
+                </button>
+            </div>
+            <p class="scanner-status" data-scanner-status role="status"></p>
+            <label class="link-button scanner-file">
+                <span class="material-symbols-outlined icon-sm">image</span>Распознать QR с фото
+                <input type="file" accept="image/*" capture="environment" data-scanner-file hidden>
+            </label>
+
+            <div class="pickup-divider"><span>или введите код вручную</span></div>
+
+            <form method="post" th:action="@{/staff/pickup/check}" class="pickup-form" data-pickup-form>
+                <label class="sr-only" for="pickup-code">Код получения</label>
+                <input id="pickup-code" name="code" class="input pickup-code-input" data-pickup-code
+                       inputmode="numeric" autocomplete="off" maxlength="200" placeholder="000 000"
+                       th:value="${code}" autofocus required>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span class="material-symbols-outlined icon-sm">search</span>Проверить код
+                </button>
+            </form>
+            <p class="hint"><span class="material-symbols-outlined icon-xs">info</span>
+                Код одноразовый. После «Подтвердить выдачу» повторно его не примут.</p>
+        </section>
+
+        <!--/* ---------- Справа: результат проверки ---------- */-->
+        <section class="card pickup-result" aria-live="polite">
+            <div class="pickup-alert is-error" role="alert" th:if="${pickupError}">
+                <span class="material-symbols-outlined">error</span>
+                <div><b th:text="${pickupError}">Заказ уже выдан</b></div>
+            </div>
+
+            <th:block th:if="${check != null}">
+                <div class="pickup-alert is-error" role="alert" th:unless="${check.canIssue}">
+                    <span class="material-symbols-outlined">block</span>
+                    <div><b th:text="${check.error}">Код не найден</b>
+                        <span th:if="${check.order == null}">Попросите покупателя показать экран заказа ещё раз.</span>
+                        <span th:if="${check.order != null}">Выдавать этот заказ нельзя.</span></div>
+                </div>
+                <div class="pickup-alert is-ok" role="status" th:if="${check.canIssue}">
+                    <span class="material-symbols-outlined icon-fill">check_circle</span>
+                    <div><b>Код верный — заказ можно выдать</b>
+                        <span>Сверьте имя и состав, затем подтвердите выдачу.</span></div>
+                </div>
+                <div class="pickup-alert is-warning" th:if="${check.warning}">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <div th:text="${check.warning}"></div>
+                </div>
+
+                <div class="pickup-order" th:if="${check.order != null}" th:with="o=${check.order}">
+                    <div class="pickup-order-head">
+                        <img th:if="${o.photoPath() != null}" th:src="${o.photoPath()}" alt="" width="72" height="72">
+                        <div>
+                            <p class="muted text-sm">Заказ № <span th:text="${o.number}"></span></p>
+                            <h2 th:text="${o.title()}">Набор выпечки на вечер</h2>
+                            <p class="pickup-qty">× <b th:text="${o.quantity()}">1</b> порц.</p>
+                        </div>
+                    </div>
+                    <dl class="pickup-facts">
+                        <div><dt>Покупатель</dt><dd th:text="${o.buyerShortName}">Айбек Д.</dd></div>
+                        <div><dt>Оплачено онлайн</dt><dd><span th:text="${o.amount()} + ' сом'"></span>
+                            <span class="muted text-sm" th:text="${o.paidAtText}"></span></dd></div>
+                        <div><dt>Окно выдачи</dt><dd th:text="${o.pickupWindow}">19:00 – 21:00</dd></div>
+                        <div th:if="${o.issuedAt() != null}"><dt>Выдан</dt>
+                            <dd><span th:text="${o.issuedAtText}"></span>
+                                <span class="muted text-sm" th:if="${o.issuedByName() != null}" th:text="'— ' + ${o.issuedByName()}"></span></dd></div>
+                    </dl>
+                    <p class="pickup-cash-note"><span class="material-symbols-outlined icon-sm">payments</span>
+                        Заказ уже оплачен — деньги с покупателя не берите.</p>
+                    <form method="post" th:if="${check.canIssue}" th:action="@{/staff/pickup/{id}/confirm(id=${o.id()})}" data-confirm-form>
+                        <button type="submit" class="btn btn-primary btn-block pickup-confirm">
+                            <span class="material-symbols-outlined icon-sm">task_alt</span>Подтвердить выдачу
+                        </button>
+                    </form>
+                </div>
+            </th:block>
+
+            <div class="pickup-empty" th:if="${check == null and pickupError == null}">
+                <span class="material-symbols-outlined">qr_code</span>
+                <h2>Ждём код покупателя</h2>
+                <p class="muted">Здесь появится заказ: что выдать, сколько порций и кому.</p>
+            </div>
+        </section>
+    </div>
+
+    <!--/* ---------- Очередь и история смены ---------- */-->
+    <div class="pickup-lists">
+        <section class="card">
+            <h2 class="card-title-sm">Ожидают выдачи <span class="badge badge-soft-dark" th:text="${stats.waiting}">0</span></h2>
+            <p class="muted text-sm" th:if="${waiting.isEmpty()}">Оплаченных заказов, которые ждут покупателя, нет.</p>
+            <ul class="pickup-list" th:unless="${waiting.isEmpty()}">
+                <li th:each="w : ${waiting}">
+                    <span class="pickup-list-time" th:text="${w.pickupWindow}">19:00 – 21:00</span>
+                    <span><b th:text="${w.title()}"></b> × <span th:text="${w.quantity()}"></span></span>
+                    <span class="muted" th:text="${w.buyerShortName}"></span>
+                </li>
+            </ul>
+        </section>
+        <section class="card">
+            <h2 class="card-title-sm">Недавно выдано</h2>
+            <p class="muted text-sm" th:if="${issued.isEmpty()}">Сегодня ещё ничего не выдавали.</p>
+            <ul class="pickup-list" th:unless="${issued.isEmpty()}">
+                <li th:each="i : ${issued}">
+                    <span class="pickup-list-time" th:text="${i.issuedAtText}"></span>
+                    <span><b th:text="${i.title()}"></b> × <span th:text="${i.quantity()}"></span></span>
+                    <span class="muted" th:text="${i.buyerShortName}"></span>
+                </li>
+            </ul>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footerBusiness}"></footer>
+<script th:src="@{/js/vendor/jsQR.min.js}" defer></script>
+<script th:src="@{/js/pickup.js}" defer></script>
+</body>
+</html>
