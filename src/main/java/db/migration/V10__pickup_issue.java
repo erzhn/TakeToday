@@ -18,7 +18,7 @@ import java.util.List;
  * называют её по-разному. Здесь имя находим по информационной схеме — одинаково в обеих базах — и заменяем
  * проверку на именованную. Статус PICKUP_EXPIRED («Время получения истекло») сразу разрешён для этапа 5 Жаныбека.
  */
-public class V9__pickup_issue extends BaseJavaMigration {
+public class V10__pickup_issue extends BaseJavaMigration {
 
     @Override
     public void migrate(Context context) throws Exception {

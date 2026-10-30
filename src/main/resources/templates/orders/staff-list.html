@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Заказы заведения')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('orders')}"></header>
+<main class="container page">
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Заказы заведения</h1>
+            <p class="page-subtitle">Текущие и прошлые заказы покупателей вашего заведения.</p>
+        </div>
+        <div class="page-actions"><a th:href="@{/staff}" class="btn btn-soft">К предложениям</a></div>
+    </div>
+
+    <div class="empty" th:if="${#lists.isEmpty(orders)}">
+        <span class="material-symbols-outlined">receipt_long</span>
+        <h2>Заказов пока нет</h2>
+        <p>Оплаченные заказы вашего заведения появятся здесь.</p>
+    </div>
+
+    <div class="table-card" th:unless="${#lists.isEmpty(orders)}">
+        <table class="table">
+            <thead><tr><th>Заказ</th><th>Покупатель</th><th>Получение</th><th>Сумма</th><th>Состояние</th><th>Возврат</th></tr></thead>
+            <tbody>
+            <tr th:each="order : ${orders}">
+                <td data-label="Заказ"><span th:text="${'№ ' + order.number}">№ 3F2A91C0</span><br><span class="muted" th:text="${order.title + ' · ' + order.quantity + ' порц.'}">Набор · 1 порц.</span></td>
+                <td data-label="Покупатель"><span th:text="${order.customerName}">Покупатель</span><br><span class="muted" th:text="${order.customerEmail}">buyer@example.com</span></td>
+                <td data-label="Получение"><span th:text="${order.pickupDay}">Сегодня</span><br><span class="muted" th:text="${order.pickupWindow}">19:00 — 21:00</span></td>
+                <td data-label="Сумма" th:text="${order.amount + ' сом'}">250 сом</td>
+                <td data-label="Состояние"><span class="badge" th:classappend="${order.statusCss}" th:text="${order.statusText}">Оплачен</span></td>
+                <td data-label="Возврат"><span th:if="${order.refundVisible}" class="badge badge-soft" th:text="${order.refundText}">Возврат не требуется</span><span th:unless="${order.refundVisible}" class="muted">—</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footerBusiness}"></footer>
+</body>
+</html>
