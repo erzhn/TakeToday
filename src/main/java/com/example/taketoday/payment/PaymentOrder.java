@@ -17,12 +17,15 @@ import java.util.UUID;
 public record PaymentOrder(UUID id, UUID customerId, UUID offerId, String title, String establishmentName,
                            String address, int amount, int quantity, int unitPrice, int regularPrice, String photoPath,
                            Instant pickupStart, Instant pickupEnd, String status, Instant expiresAt,
-                           String pickupCode, Instant paidAt, String cancelReason, String refundStatus) {
+                           String pickupCode, Instant paidAt, String cancelReason, String refundStatus,
+                           Instant issuedAt) {
 
     private static final DateTimeFormatter HH_MM = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("d MMMM", Locale.forLanguageTag("ru"));
 
     public boolean isPaid() { return "PAID".equals(status); }
+    /** Этап 4: сотрудник подтвердил выдачу, код больше не действует. */
+    public boolean isIssued() { return "ISSUED".equals(status); }
     public boolean isAwaitingPayment() { return "AWAITING_PAYMENT".equals(status); }
     public boolean isCancelled() { return "CANCELLED".equals(status); }
     public boolean isLatePayment() { return "LATE_PAYMENT".equals(cancelReason); }
@@ -57,6 +60,10 @@ public record PaymentOrder(UUID id, UUID customerId, UUID offerId, String title,
         if (date.equals(today)) return "Сегодня";
         if (date.equals(today.plusDays(1))) return "Завтра";
         return date.format(DAY);
+    }
+
+    public String getIssuedAtText() {
+        return issuedAt == null ? "" : AppTime.format(issuedAt);
     }
 
     public String getPaidAtText() {

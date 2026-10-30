@@ -15,6 +15,21 @@
         });
     }
 
+    // ---- Этап 4: сотрудник подтвердил выдачу — страница сама покажет «Заказ выдан»
+    const waitIssue = document.querySelector('[data-wait-issue]');
+    if (waitIssue) {
+        const poll = setInterval(async () => {
+            if (document.hidden) return;
+            try {
+                const response = await fetch('/api/orders/reservations/' + waitIssue.dataset.orderId,
+                    {credentials: 'same-origin', cache: 'no-store'});
+                if (!response.ok) return;
+                const data = await response.json();
+                if (data.order && data.order.status !== 'PAID') { clearInterval(poll); location.reload(); }
+            } catch (e) { /* нет сети — проверим в следующий раз */ }
+        }, 5000);
+    }
+
     // ---- «Осталось 1 ч 45 мин до начала выдачи»
     const countdown = document.querySelector('[data-pickup-countdown]');
     if (countdown) {

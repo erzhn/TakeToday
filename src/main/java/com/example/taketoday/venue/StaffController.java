@@ -5,6 +5,7 @@ import com.example.taketoday.common.CurrentAccount;
 import com.example.taketoday.common.CurrentUserService;
 import com.example.taketoday.offer.OfferRow;
 import com.example.taketoday.offer.OfferService;
+import com.example.taketoday.pickup.PickupService;
 import com.example.taketoday.venue.dto.VenueForm;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -29,11 +30,14 @@ public class StaffController {
     private final VenueService venueService;
     private final OfferService offerService;
     private final CurrentUserService currentUser;
+    private final PickupService pickup;
 
-    public StaffController(VenueService venueService, OfferService offerService, CurrentUserService currentUser) {
+    public StaffController(VenueService venueService, OfferService offerService, CurrentUserService currentUser,
+                           PickupService pickup) {
         this.venueService = venueService;
         this.offerService = offerService;
         this.currentUser = currentUser;
+        this.pickup = pickup;
     }
 
     @GetMapping
@@ -47,6 +51,8 @@ public class StaffController {
         model.addAttribute("offCount", offers.stream().filter(OfferRow::isOff).count());
         model.addAttribute("expiredCount", offers.stream().filter(OfferRow::isExpired).count());
         model.addAttribute("onSaleCount", offers.stream().filter(r -> r.getState() == OfferRow.State.ACTIVE).count());
+        // Этап 4: цифры за день — оплачено, выдано, ждут выдачи
+        model.addAttribute("stats", pickup.stats(staff.getEstablishmentId()));
         return "staff/home";
     }
 

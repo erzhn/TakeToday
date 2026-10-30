@@ -42,7 +42,7 @@ public class OrderController {
     @GetMapping("/orders/{id}")
     public String order(@PathVariable UUID id, Model model, HttpServletResponse response) {
         PaymentOrder order = payments.order(id, guard.customerId());
-        if (!order.isPaid() && !order.isLatePayment()) {
+        if (!order.isPaid() && !order.isIssued() && !order.isLatePayment()) {
             // Ещё не оплачен или бронь просто истекла — это показывает страница брони Жаныбека
             return "redirect:/reservations/" + id;
         }

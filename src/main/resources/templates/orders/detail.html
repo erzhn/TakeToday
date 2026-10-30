@@ -18,7 +18,7 @@
             <span class="badge status-paid order-status"><span class="dot"></span>Оплачен</span>
         </section>
 
-        <section class="card order-code-card">
+        <section class="card order-code-card" data-wait-issue th:attr="data-order-id=${order.id}">
             <div class="order-code-head">
                 <span class="order-label">Ваш код получения</span>
                 <span class="badge badge-red order-window">
@@ -113,6 +113,17 @@
             <a th:href="@{/orders}" class="btn btn-primary">Мои заказы</a>
         </div>
     </th:block>
+
+    <!--/* ===== Выдан (этап 4): код погашен, показываем только итог ===== */-->
+    <section class="card order-late" th:if="${order.issued}">
+        <span class="order-hero-icon"><span class="material-symbols-outlined icon-fill">task_alt</span></span>
+        <h1>Заказ выдан</h1>
+        <p>Заказ № <b th:text="${order.number}"></b> «<span th:text="${order.title}"></span>» ×
+            <span th:text="${order.quantity}"></span> выдан в заведении
+            <b th:text="${order.establishmentName}"></b> — <span th:text="${order.issuedAtText}"></span>.</p>
+        <p class="muted">Код получения больше не действует. Спасибо, что спасаете еду!</p>
+        <a th:href="@{/catalog}" class="btn btn-primary">Выбрать ещё набор</a>
+    </section>
 
     <!--/* ===== Деньги пришли после окончания брони ===== */-->
     <section class="card order-late" th:if="${order.latePayment}">

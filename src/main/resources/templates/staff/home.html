@@ -4,7 +4,7 @@
 <body>
 <header th:replace="~{fragments/layout :: header('staff')}"></header>
 
-<!--/* Экран 7 «Кабинет заведения — Дашборд». Цифры и таблица оживут на этапах 2–4. */-->
+<!--/* Экран 7 «Кабинет заведения — Дашборд». Цифры за день — PickupService.stats (этап 4). */-->
 <main class="container page">
 
     <div th:replace="~{fragments/layout :: flash}"></div>
@@ -84,7 +84,7 @@
                 <span class="stat-label">Оплачено сегодня</span>
                 <span class="stat-icon accent"><span class="material-symbols-outlined">payments</span></span>
             </div>
-            <div class="stat-value">0 <small class="accent" style="color: var(--accent)">0 сом</small></div>
+            <div class="stat-value"><span th:text="${stats.paidCount}">0</span> <small class="accent" style="color: var(--accent)" th:text="${#numbers.formatInteger(stats.paidAmount, 1, 'WHITESPACE')} + ' сом'">0 сом</small></div>
             <div class="stat-caption">Суммарная выручка за сегодня</div>
         </div>
         <div class="stat">
@@ -92,7 +92,7 @@
                 <span class="stat-label">Выдано сегодня</span>
                 <span class="stat-icon"><span class="material-symbols-outlined">task_alt</span></span>
             </div>
-            <div class="stat-value">0</div>
+            <div class="stat-value" th:text="${stats.issuedCount}">0</div>
             <div class="stat-caption">Успешно погашено кодов</div>
         </div>
         <div class="stat">
@@ -100,7 +100,7 @@
                 <span class="stat-label">Ожидают выдачи</span>
                 <span class="badge badge-red" th:text="${venue.todayHours}">19:00–21:00</span>
             </div>
-            <div class="stat-value accent">0 <small>заказов</small></div>
+            <div class="stat-value accent"><span th:text="${stats.waiting}">0</span> <small>заказов</small></div>
             <div class="stat-caption">Клиенты скоро подойдут</div>
         </div>
     </div>

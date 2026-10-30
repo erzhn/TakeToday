@@ -427,6 +427,8 @@ public interface PaymentGateway {
 
 **✅ Как сделано на этапе 3 (Эржан):** код — `PickupCodeGenerator` (уникален среди `PAID`), QR — `GET /orders/{id}/qr.png` (только ZXing `core` + `ImageIO`, без `javase`; `Cache-Control: no-store`). В QR зашито `TAKETODAY:{orderId}:{код}` — сотрудник на этапе 4 сразу видит нужный заказ. Страница `/orders/{id}` (экран 4) — `orders/detail.html`; чужой заказ → 404, сотрудник → 403, неоплаченный → перенаправление на `/reservations/{id}`.
 
+**✅ Как сделано на этапе 4 (Эржан):** `PickupService.check` / `confirm`, страница `staff/pickup.html`. Поле принимает и 6 цифр, и содержимое QR `TAKETODAY:{orderId}:{код}`. Заказ другого заведения не показываем. Сканер — встроенный `BarcodeDetector`, иначе jsQR (лежит в проекте, без CDN; `html5-qrcode` не понадобился). 10 неверных кодов за 10 минут — пауза (журнал `PICKUP_CODE_WRONG`). Выдача — журнал `ORDER_ISSUED`. Если окно выдачи ещё не началось — только предупреждение. Статус `PICKUP_EXPIRED` уже разрешён в базе (V9) — планировщику этапа 5 остаётся только ставить его.
+
 Подтверждение выдачи — отдельный `POST /staff/pickup/{orderId}/confirm`. Внутри снова все проверки + смена статуса через `UPDATE orders SET status='ISSUED' ... WHERE id=? AND status='PAID'`. Повторное нажатие кнопки ничего не сломает: второй раз обновится 0 строк → «Заказ уже выдан» (п. 5.3.2).
 
 ---

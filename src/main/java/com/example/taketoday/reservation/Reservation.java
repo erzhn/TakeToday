@@ -11,6 +11,8 @@ public record Reservation(UUID id, UUID offerId, String title, String establishm
         return switch (status) {
             case "AWAITING_PAYMENT" -> "Ожидает оплаты";
             case "PAID" -> "Оплачен";
+            case "ISSUED" -> "Выдан";
+            case "PICKUP_EXPIRED" -> "Время получения истекло";
             default -> "Отменен";
         };
     }

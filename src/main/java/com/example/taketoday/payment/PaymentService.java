@@ -292,7 +292,8 @@ public class PaymentService {
             rs.getString("pickup_code"),
             instant(rs, "paid_at"),
             rs.getString("cancel_reason"),
-            rs.getString("refund_status"));
+            rs.getString("refund_status"),
+            instant(rs, "issued_at"));
 
     private static final RowMapper<Payment> PAYMENT_MAPPER = (rs, n) -> new Payment(
             rs.getObject("id", UUID.class),
