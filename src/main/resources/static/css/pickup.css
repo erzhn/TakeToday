@@ -1,0 +1,92 @@
+/* Этап 4 (Эржан): экран 9 «Выдача заказа и QR-сканер». */
+.pickup-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+.pickup-stats span {
+    padding: 6px 12px; border-radius: var(--radius-pill); background: var(--surface); box-shadow: var(--shadow-card);
+    font-size: 13px; color: var(--muted);
+}
+.pickup-stats b { font-family: var(--font-num); color: var(--text); font-size: 15px; }
+
+.pickup-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.pickup-grid .card + .card, .pickup-lists .card + .card { margin-top: 0; }
+.pickup-input, .pickup-result { display: grid; gap: 16px; }
+
+/* Камера */
+.scanner {
+    position: relative; aspect-ratio: 4 / 3; border-radius: var(--radius); overflow: hidden;
+    background: radial-gradient(circle at 50% 40%, #2b3a2c 0, #111813 75%); color: #fff;
+}
+.scanner-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.scanner-frame { position: absolute; inset: 18% 24%; pointer-events: none; }
+.scanner-frame span { position: absolute; width: 28px; height: 28px; border: 4px solid var(--primary-container); }
+.scanner-frame span:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 10px; }
+.scanner-frame span:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 10px; }
+.scanner-frame span:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 10px; }
+.scanner-frame span:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 10px; }
+.scanner.is-live .scanner-frame::after {
+    content: ""; position: absolute; left: 4%; right: 4%; height: 2px; top: 10%;
+    background: var(--primary-container); box-shadow: 0 0 12px var(--primary-container);
+    animation: scan-line 2.2s ease-in-out infinite alternate;
+}
+@keyframes scan-line { to { top: 90%; } }
+@media (prefers-reduced-motion: reduce) { .scanner.is-live .scanner-frame::after { animation: none; top: 50%; } }
+.scanner-idle {
+    position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px;
+    padding: 16px; text-align: center;
+}
+.scanner-idle .material-symbols-outlined { font-size: 44px; color: var(--primary-container); }
+.scanner-idle p { max-width: 260px; color: rgba(255, 255, 255, .85); font-size: 14px; }
+.scanner-stop { position: absolute; right: 12px; bottom: 12px; }
+.scanner [hidden] { display: none; }
+.scanner-status { min-height: 1.2em; font-size: 13px; color: var(--muted); }
+.scanner-status.is-error { color: var(--error); }
+.scanner-file { justify-self: start; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+
+.pickup-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; }
+.pickup-divider::before, .pickup-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.pickup-form { display: grid; gap: 12px; }
+.pickup-code-input {
+    height: 64px; text-align: center; font-family: var(--font-num); font-size: 30px; font-weight: 700;
+    letter-spacing: .18em;
+}
+.pickup-form .btn-block, .pickup-confirm { height: 52px; gap: 8px; }
+
+/* Результат */
+.pickup-alert { display: flex; gap: 10px; align-items: flex-start; padding: 14px 16px; border-radius: var(--radius); line-height: 1.45; }
+.pickup-alert > div { display: grid; gap: 2px; }
+.pickup-alert b { font-size: 16px; }
+.pickup-alert.is-error { background: var(--error-soft); color: #8c1d18; }
+.pickup-alert.is-ok { background: var(--primary-soft); color: var(--on-primary-container); }
+.pickup-alert.is-ok .material-symbols-outlined { color: var(--primary); }
+.pickup-alert.is-warning { background: var(--warning-soft); color: #6b3a06; }
+.pickup-order { display: grid; gap: 14px; }
+.pickup-order-head { display: flex; gap: 14px; align-items: center; }
+.pickup-order-head img { width: 72px; height: 72px; object-fit: cover; border-radius: var(--radius-sm); }
+.pickup-order-head h2 { font-size: 22px; }
+.pickup-qty { font-size: 18px; margin-top: 2px; }
+.pickup-qty b { font-family: var(--font-num); font-size: 22px; color: var(--primary); }
+.pickup-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+.pickup-facts > div { padding: 12px; border-radius: var(--radius-sm); background: var(--surface-2); }
+.pickup-facts dt { font-size: 12px; color: var(--muted); }
+.pickup-facts dd { margin: 2px 0 0; font-weight: 600; }
+.pickup-cash-note { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
+.pickup-empty { display: grid; justify-items: center; gap: 8px; text-align: center; padding: 40px 16px; }
+.pickup-empty .material-symbols-outlined { font-size: 48px; color: var(--outline); }
+.pickup-empty h2 { font-size: 20px; }
+
+.pickup-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+.pickup-lists h2 { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.pickup-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pickup-list li {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+    padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface-2); font-size: 14px;
+}
+.pickup-list-time { font-family: var(--font-num); font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+@media (max-width: 860px) {
+    .pickup-grid, .pickup-lists { grid-template-columns: 1fr; }
+    .pickup-result { order: -1; }       /* на телефоне результат сразу над камерой */
+}
+@media (max-width: 520px) {
+    .pickup-facts { grid-template-columns: 1fr; }
+    .pickup-list li { grid-template-columns: 1fr; gap: 2px; }
+}

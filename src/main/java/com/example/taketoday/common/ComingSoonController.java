@@ -18,13 +18,6 @@ public class ComingSoonController {
                 "Здесь будут ваши текущие и прошлые заказы с кодом получения.", "этап 5 (до 30 декабря)", "/");
     }
 
-    @GetMapping("/staff/pickup")
-    public String pickup(Model model) {
-        return page(model, "Выдача заказа", "qr_code_scanner",
-                "Здесь сотрудник будет проверять шестизначный код или QR-код покупателя и выдавать заказ.",
-                "этап 4 (до 15 декабря)", "/staff");
-    }
-
     @GetMapping("/staff/orders")
     public String staffOrders(Model model) {
         return page(model, "Заказы заведения", "receipt_long",

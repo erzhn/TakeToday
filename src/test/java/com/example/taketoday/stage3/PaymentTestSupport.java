@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 
 /** Подготовка для тестов этапа 3: покупатель, заведение с набором и управляемые часы брони. */
 @TestPropertySource(properties = "app.reservations.expiry-enabled=false")
-abstract class PaymentTestSupport extends Stage1TestSupport {
+public abstract class PaymentTestSupport extends Stage1TestSupport {
 
     @MockitoBean(name = "reservationClock")
     protected Clock clock;
@@ -34,7 +34,7 @@ abstract class PaymentTestSupport extends Stage1TestSupport {
     protected UUID offer;
 
     @BeforeEach
-    void prepareOffer() {
+    protected void prepareOffer() {
         now = Instant.now();
         when(clock.instant()).thenReturn(now);
         customer = account("buyer@example.com", "Айбек Джумабаев", "CUSTOMER");
