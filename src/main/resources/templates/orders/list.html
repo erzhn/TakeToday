@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Мои заказы')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('orders')}"></header>
+<main class="container page">
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Мои заказы</h1>
+            <p class="page-subtitle">Актуальные заказы с кодом получения и завершённые покупки.</p>
+        </div>
+        <div class="page-actions"><a th:href="@{/catalog}" class="btn btn-primary">В каталог</a></div>
+    </div>
+
+    <section th:if="${not #lists.isEmpty(currentOrders)}">
+        <h2>Актуальные</h2>
+        <div class="table-card">
+            <table class="table">
+                <thead><tr><th>Заказ</th><th>Получение</th><th>Сумма</th><th>Статус</th><th>Код</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="order : ${currentOrders}">
+                    <td data-label="Заказ"><a th:href="@{/orders/{id}(id=${order.id})}" th:text="${'№ ' + order.number}">№ 3F2A91C0</a><br><span class="muted" th:text="${order.title + ' · ' + order.establishmentName}">Набор · Заведение</span></td>
+                    <td data-label="Получение"><span th:text="${order.pickupDay}">Сегодня</span><br><span class="muted" th:text="${order.pickupWindow}">19:00 — 21:00</span></td>
+                    <td data-label="Сумма" th:text="${order.amount + ' сом'}">250 сом</td>
+                    <td data-label="Статус"><span class="badge" th:classappend="${order.statusCss}" th:text="${order.statusText}">Оплачен</span></td>
+                    <td data-label="Код"><span th:if="${order.paid}" class="code" th:text="${order.codeGroups}">676 889</span><span th:unless="${order.paid}" class="muted">После оплаты</span></td>
+                    <td><a th:if="${order.paid}" class="btn btn-secondary" th:href="@{/orders/{id}(id=${order.id})}">Открыть QR</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section th:if="${not #lists.isEmpty(completedOrders)}">
+        <h2>Завершённые</h2>
+        <div class="table-card">
+            <table class="table">
+                <thead><tr><th>Заказ</th><th>Заказан</th><th>Получение</th><th>Сумма</th><th>Статус</th><th>Возврат</th></tr></thead>
+                <tbody>
+                <tr th:each="order : ${completedOrders}">
+                    <td data-label="Заказ"><a th:href="@{/orders/{id}(id=${order.id})}" th:text="${'№ ' + order.number}">№ 3F2A91C0</a><br><span class="muted" th:text="${order.title + ' · ' + order.establishmentName}">Набор · Заведение</span></td>
+                    <td data-label="Заказан" th:text="${order.createdAtText}">30 октября 2026, 18:30</td>
+                    <td data-label="Получение"><span th:text="${order.pickupDay}">Сегодня</span><br><span class="muted" th:text="${order.pickupWindow}">19:00 — 21:00</span></td>
+                    <td data-label="Сумма" th:text="${order.amount + ' сом'}">250 сом</td>
+                    <td data-label="Статус"><span class="badge" th:classappend="${order.statusCss}" th:text="${order.statusText}">Получен</span></td>
+                    <td data-label="Возврат"><span th:if="${order.refundVisible}" class="badge badge-soft" th:text="${order.refundText}">Возврат не требуется</span><span th:unless="${order.refundVisible}" class="muted">—</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="empty" th:if="${#lists.isEmpty(currentOrders) and #lists.isEmpty(completedOrders)}">
+        <span class="material-symbols-outlined">receipt_long</span>
+        <h2>Заказов пока нет</h2>
+        <p>Выберите набор в каталоге, чтобы он появился здесь.</p>
+        <a th:href="@{/catalog}" class="btn btn-primary">Открыть каталог</a>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

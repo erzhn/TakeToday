@@ -1,6 +1,7 @@
 package com.example.taketoday.notification;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -20,15 +21,21 @@ public class OrderNotificationJob {
     private final JdbcTemplate db;
     private final Clock clock;
     private final OrderNotificationService notifications;
+    private final boolean enabled;
 
-    public OrderNotificationJob(JdbcTemplate db, Clock clock, OrderNotificationService notifications) {
+    public OrderNotificationJob(JdbcTemplate db, Clock clock, OrderNotificationService notifications,
+                                @Value("${app.reservations.expiry-enabled:true}") boolean enabled) {
         this.db = db;
         this.clock = clock;
         this.notifications = notifications;
+        this.enabled = enabled;
     }
 
     @Scheduled(fixedDelay = 5000)
     public void sendDueNotifications() {
+        if (!enabled) {
+            return;
+        }
         Instant now = clock.instant();
         if (now == null) {
             return;
