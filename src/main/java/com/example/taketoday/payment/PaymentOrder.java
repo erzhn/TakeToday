@@ -18,7 +18,7 @@ public record PaymentOrder(UUID id, UUID customerId, UUID offerId, String title,
                            String address, int amount, int quantity, int unitPrice, int regularPrice, String photoPath,
                            Instant pickupStart, Instant pickupEnd, String status, Instant expiresAt,
                            String pickupCode, Instant paidAt, String cancelReason, String refundStatus,
-                           Instant issuedAt) {
+                           Instant issuedAt, Instant cancelledAt, String cancelComment) {
 
     private static final DateTimeFormatter HH_MM = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("d MMMM", Locale.forLanguageTag("ru"));
@@ -29,6 +29,52 @@ public record PaymentOrder(UUID id, UUID customerId, UUID offerId, String title,
     public boolean isAwaitingPayment() { return "AWAITING_PAYMENT".equals(status); }
     public boolean isCancelled() { return "CANCELLED".equals(status); }
     public boolean isLatePayment() { return "LATE_PAYMENT".equals(cancelReason); }
+
+    /** Этап 5: отменил покупатель, заведение или администратор (не «бронь истекла»). */
+    public boolean isCancelledByPerson() {
+        return isCancelled() && ("CUSTOMER".equals(cancelReason) || "VENUE".equals(cancelReason) || "ADMIN".equals(cancelReason));
+    }
+
+    /** Заказ показывается на странице /orders/{id}; остальное (бронь, истёкшая бронь) — на странице брони. */
+    public boolean hasOrderPage() {
+        return isPaid() || isIssued() || isLatePayment() || isCancelledByPerson() || "PICKUP_EXPIRED".equals(status);
+    }
+
+    /** Отменить оплаченный заказ покупатель может до начала выдачи (п. 4.6.4). */
+    public boolean canCancel(Instant now) {
+        return isPaid() && now.isBefore(pickupStart);
+    }
+
+    /** Окно выдачи прошло, а заказ так и не забрали. */
+    public boolean isPickupOver(Instant now) {
+        return "PICKUP_EXPIRED".equals(status) || (isPaid() && !now.isBefore(pickupEnd));
+    }
+
+    public String getCancelledAtText() {
+        return cancelledAt == null ? "" : AppTime.format(cancelledAt);
+    }
+
+    public String getPickupStartText() {
+        return pickupStart.atZone(AppTime.ZONE).format(HH_MM);
+    }
+
+    public String getRefundTitle() {
+        return switch (refundStatus == null ? "NONE" : refundStatus) {
+            case "PENDING" -> "Возврат в обработке";
+            case "COMPLETED" -> "Деньги возвращены";
+            case "FAILED" -> "Возврат задерживается — им занимается администратор";
+            default -> "";
+        };
+    }
+
+    public String getCancelTitle() {
+        return switch (cancelReason == null ? "" : cancelReason) {
+            case "CUSTOMER" -> paidAt == null ? "Вы отменили бронь" : "Вы отменили заказ";
+            case "VENUE" -> "Заведение не может выдать заказ";
+            case "ADMIN" -> "Заказ отменён администратором";
+            default -> "Заказ отменён";
+        };
+    }
 
     /** Бронь ещё действует и оплату можно начать. */
     public boolean canPay(Instant now) {

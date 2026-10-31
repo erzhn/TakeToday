@@ -1,5 +1,6 @@
 package com.example.taketoday.payment;
 
+import com.example.taketoday.refund.RefundService;
 import com.example.taketoday.reservation.ReservationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -48,10 +51,12 @@ public class PaymentService {
     private final PickupCodeGenerator codes;
     private final AuditLog audit;
     private final ReservationService reservations;
+    private final RefundService refunds;
 
     public PaymentService(JdbcTemplate db, @Qualifier("reservationClock") Clock clock,
                           PlatformTransactionManager manager, PaymentGateway gateway,
-                          PickupCodeGenerator codes, AuditLog audit, ReservationService reservations) {
+                          PickupCodeGenerator codes, AuditLog audit, ReservationService reservations,
+                          RefundService refunds) {
         this.db = db;
         this.clock = clock;
         this.transactions = new TransactionTemplate(manager);
@@ -59,6 +64,7 @@ public class PaymentService {
         this.codes = codes;
         this.audit = audit;
         this.reservations = reservations;
+        this.refunds = refunds;
     }
 
     // ------------------------------------------------------------------ чтение
@@ -75,6 +81,12 @@ public class PaymentService {
     public Optional<Payment> lastPayment(UUID orderId) {
         return db.query("SELECT * FROM payments WHERE order_id = ? ORDER BY created_at DESC, id LIMIT 1",
                 PAYMENT_MAPPER, orderId).stream().findFirst();
+    }
+
+    /** Последний успешный платёж (для «карта •••• 4242»), иначе последняя попытка. */
+    public Optional<Payment> paymentForReceipt(UUID orderId) {
+        return db.query("SELECT * FROM payments WHERE order_id = ? AND status = 'SUCCEEDED' ORDER BY created_at DESC, id LIMIT 1",
+                PAYMENT_MAPPER, orderId).stream().findFirst().or(() -> lastPayment(orderId));
     }
 
     /** Платёж для страницы платёжной службы. Чужой платёж не показываем. */
@@ -138,6 +150,7 @@ public class PaymentService {
                 .orElseThrow(() -> new PaymentException("Платёж не найден."));
         UUID offerId = readOrder(found.orderId()).offerId();
 
+        List<UUID> refundIds = new ArrayList<>(); // возвраты выполняем уже после транзакции (этап 5)
         PaymentResult result = transactions.execute(tx -> {
             lockOffer(offerId);
             Payment payment = db.query("SELECT * FROM payments WHERE id = ? FOR UPDATE", PAYMENT_MAPPER, found.id()).get(0);
@@ -168,11 +181,13 @@ public class PaymentService {
 
             finishPayment(payment.id(), PaymentStatus.SUCCEEDED, cardLast4, null, now);
 
-            if (order.isPaid()) {
+            if (order.isPaid() || order.isIssued()) {
                 db.update("UPDATE payments SET error_message = ? WHERE id = ?",
                         "Заказ уже был оплачен — эту сумму нужно вернуть", payment.id());
                 audit.log(AuditLog.LATE_PAYMENT, order.id(), payment.id(), order.customerId(),
                         "Повторная оплата уже оплаченного заказа: " + payment.amount() + " сом нужно вернуть");
+                refunds.request(order.id(), payment.id(), "AUTO", null, "Повторная оплата уже оплаченного заказа")
+                        .ifPresent(refundIds::add);
                 return PaymentResult.ALREADY_PAID;
             }
 
@@ -188,12 +203,18 @@ public class PaymentService {
             if (order.isAwaitingPayment()) {
                 releaseHold(order, now, "LATE_PAYMENT");
             }
-            db.update("UPDATE reservation_orders SET cancel_reason = 'LATE_PAYMENT', refund_status = 'PENDING' WHERE id = ?",
-                    order.id());
+            // Причину «отменил покупатель/заведение» не затираем — меняем только «бронь истекла»
+            db.update("""
+                    UPDATE reservation_orders SET cancel_reason = 'LATE_PAYMENT'
+                    WHERE id = ? AND (cancel_reason IS NULL OR cancel_reason IN ('RESERVATION_EXPIRED', 'LATE_PAYMENT'))
+                    """, order.id());
             audit.log(AuditLog.LATE_PAYMENT, order.id(), payment.id(), order.customerId(),
-                    "Оплата " + order.amount() + " сом пришла после окончания брони. Заказ отменён, деньги нужно вернуть");
+                    "Оплата " + order.amount() + " сом пришла после окончания брони. Заказ отменён, деньги возвращаются");
+            refunds.request(order.id(), payment.id(), "AUTO", null, "Оплата пришла после окончания брони")
+                    .ifPresent(refundIds::add);
             return PaymentResult.LATE_PAYMENT;
         });
+        refunds.processAll(refundIds);
         log.info("Payment {} finished: {}", providerPaymentId, result);
         return result;
     }
@@ -293,7 +314,9 @@ public class PaymentService {
             instant(rs, "paid_at"),
             rs.getString("cancel_reason"),
             rs.getString("refund_status"),
-            instant(rs, "issued_at"));
+            instant(rs, "issued_at"),
+            instant(rs, "cancelled_at"),
+            rs.getString("cancel_comment"));
 
     private static final RowMapper<Payment> PAYMENT_MAPPER = (rs, n) -> new Payment(
             rs.getObject("id", UUID.class),

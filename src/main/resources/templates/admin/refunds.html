@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* Админ-панель: возвраты денег (экран 11, п. 4.10.2, 4.10.3 ТЗ). */-->
+<head th:replace="~{fragments/layout :: head('Возвраты')}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('refunds')}"></aside>
+    <main class="admin-main">
+        <link rel="stylesheet" th:href="@{/css/admin.css}">
+        <div th:replace="~{admin/parts :: top('Возвраты', 'Автоматические возвраты при отмене и поздней оплате, ручные — администратором')}"></div>
+        <div th:replace="~{admin/parts :: messages}"></div>
+
+        <div class="admin-alert is-warning" th:unless="${manual.isEmpty()}">
+            <span class="material-symbols-outlined">warning</span>
+            <span>Автоматический возврат не удался по <b th:text="${manual.size()}">1</b> заказ(ам) — откройте заказ и оформите возврат вручную.
+                <th:block th:each="f, it : ${manual}"><a th:href="@{/admin/orders/{id}(id=${f.orderId})}" th:text="'№ ' + ${f.number}"></a><span th:unless="${it.last}">, </span></th:block></span>
+        </div>
+
+        <form class="admin-filters" method="get" th:action="@{/admin/refunds}" role="search">
+            <input class="input" type="search" name="q" th:value="${q}" placeholder="№ заказа, покупатель или почта" aria-label="Поиск">
+            <select class="select" name="status" aria-label="Состояние">
+                <option value="">Все возвраты</option>
+                <option value="PENDING" th:selected="${status == 'PENDING'}">В обработке</option>
+                <option value="COMPLETED" th:selected="${status == 'COMPLETED'}">Выполнены</option>
+                <option value="FAILED" th:selected="${status == 'FAILED'}">С ошибкой</option>
+            </select>
+            <button class="btn btn-soft" type="submit"><span class="material-symbols-outlined icon-sm">search</span>Найти</button>
+            <span class="admin-count">Показано: <span th:text="${refunds.size()}">0</span></span>
+        </form>
+
+        <div class="table-card admin-table">
+            <table class="table">
+                <thead><tr><th>Оформлен</th><th>Заказ</th><th>Покупатель</th><th>Сумма</th><th>Состояние</th><th>Кто</th><th>Причина</th></tr></thead>
+                <tbody>
+                <tr th:if="${refunds.isEmpty()}"><td colspan="7" class="table-empty">Возвратов не нашли</td></tr>
+                <tr th:each="f : ${refunds}">
+                    <td class="num" th:text="${f.createdText}"></td>
+                    <td><a th:href="@{/admin/orders/{id}(id=${f.orderId})}" th:text="'№ ' + ${f.number}"></a><small th:text="${f.title}"></small></td>
+                    <td th:text="${f.buyerName}"></td>
+                    <td class="num" th:text="${f.amount} + ' сом'"></td>
+                    <td><span class="badge" th:classappend="${f.statusCss}" th:text="${f.statusTitle}"></span>
+                        <small th:if="${f.completedAt != null}" th:text="${f.completedText}"></small>
+                        <span class="err" th:if="${f.errorMessage != null}" th:text="${f.errorMessage} + ' (попыток: ' + ${f.attempts} + ')'"></span></td>
+                    <td><span th:text="${f.initiatedTitle}"></span><small th:if="${f.adminName != null}" th:text="${f.adminName}"></small></td>
+                    <td th:text="${f.reason}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+</body>
+</html>

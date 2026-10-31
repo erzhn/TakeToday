@@ -169,6 +169,9 @@ public class OfferService {
                 form.getFoodType(), photo, form.getRegularPrice(), form.getDiscountPrice(), form.getTotalPortions(),
                 0, 0, start(form), end(form), OfferStatus.ACTIVE, now, now, 0);
         offers.insert(offer);
+        if (form.getCopyFrom() != null) {
+            offers.archiveIfExpired(form.getCopyFrom(), venue.id(), now);
+        }
         return offer.id();
     }
 
@@ -209,6 +212,11 @@ public class OfferService {
 
     /** Вернуть снятое предложение в продажу. Если время выдачи прошло — нельзя, нужно изменить время. */
     @Transactional
+    /** Этап 5: причины, по которым администратор скрыл предложения заведения (id → причина). */
+    public java.util.Map<UUID, String> hiddenReasons(CurrentAccount staff) {
+        return staff.getEstablishmentId() == null ? java.util.Map.of() : offers.hiddenReasons(staff.getEstablishmentId());
+    }
+
     public boolean resume(CurrentAccount staff, UUID offerId) {
         StaffOffer offer = getForStaff(staff, offerId);
         if (offer.isExpired(Instant.now())) {

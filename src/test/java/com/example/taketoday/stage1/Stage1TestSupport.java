@@ -33,7 +33,9 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
         "MAIL_PASSWORD=test",
         "app.admin-email=",
         "app.admin-password=",
-        "app.upload-dir=target/test-uploads"
+        "app.upload-dir=target/test-uploads",
+        // Письма Жаныбека проверяются в его тестах; здесь фоновая рассылка не нужна
+        "app.notifications.enabled=false"
 })
 public abstract class Stage1TestSupport {
 
@@ -49,6 +51,8 @@ public abstract class Stage1TestSupport {
     protected void cleanDatabase() {
         mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
         db.update("DELETE FROM audit_log");
+        db.update("DELETE FROM order_notifications");
+        db.update("DELETE FROM refunds");
         db.update("DELETE FROM payments");
         db.update("DELETE FROM reservation_orders");
         db.update("DELETE FROM offers");

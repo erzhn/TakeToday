@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* Админ-панель: пользователи и блокировка (п. 4.10.1 ТЗ). */-->
+<head th:replace="~{fragments/layout :: head('Пользователи')}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('users')}"></aside>
+    <main class="admin-main">
+        <link rel="stylesheet" th:href="@{/css/admin.css}">
+        <div th:replace="~{admin/parts :: top('Пользователи', 'Покупатели, заведения и администраторы. Заблокированный не может войти, его предложения скрыты из каталога')}"></div>
+        <div th:replace="~{admin/parts :: messages}"></div>
+
+        <form class="admin-filters" method="get" th:action="@{/admin/users}" role="search">
+            <input class="input" type="search" name="q" th:value="${q}" placeholder="Имя, почта, телефон или заведение" aria-label="Поиск">
+            <select class="select" name="role" aria-label="Роль">
+                <option value="">Все роли</option>
+                <option value="CUSTOMER" th:selected="${role == 'CUSTOMER'}">Покупатели</option>
+                <option value="STAFF" th:selected="${role == 'STAFF'}">Заведения</option>
+                <option value="ADMIN" th:selected="${role == 'ADMIN'}">Администраторы</option>
+                <option value="BLOCKED" th:selected="${role == 'BLOCKED'}">Заблокированные</option>
+            </select>
+            <button class="btn btn-soft" type="submit"><span class="material-symbols-outlined icon-sm">search</span>Найти</button>
+            <span class="admin-count">Показано: <span th:text="${users.size()}">0</span></span>
+        </form>
+
+        <div class="table-card admin-table">
+            <table class="table">
+                <thead><tr><th>Пользователь</th><th>Роль</th><th>Заказов</th><th>Регистрация</th><th>Состояние</th><th>Действие</th></tr></thead>
+                <tbody>
+                <tr th:if="${users.isEmpty()}"><td colspan="6" class="table-empty">Никого не нашли</td></tr>
+                <tr th:each="u : ${users}" th:classappend="${u.blocked} ? 'is-blocked'">
+                    <td><b th:text="${u.name}">Айбек</b><small th:text="${u.email}"></small><small th:if="${u.phone != null}" th:text="${u.phone}"></small></td>
+                    <td><span th:text="${u.roleTitle}">Покупатель</span><small th:if="${u.establishmentName != null}" th:text="${u.establishmentName}"></small></td>
+                    <td class="num" th:text="${u.orders}">0</td>
+                    <td><span th:text="${u.createdText}"></span><small th:unless="${u.verified}">почта не подтверждена</small></td>
+                    <td>
+                        <span class="badge badge-red" th:if="${u.blocked}">Заблокирован</span>
+                        <span class="badge badge-green" th:unless="${u.blocked}">Активен</span>
+                        <small th:if="${u.blocked}" th:text="${u.blockedText} + ': ' + ${u.blockedReason}"></small>
+                    </td>
+                    <td>
+                        <span class="muted" th:if="${u.admin}">—</span>
+                        <details class="admin-action" th:if="${!u.admin and !u.blocked}">
+                            <summary class="is-danger">Заблокировать</summary>
+                            <form method="post" th:action="@{/admin/users/{id}/block(id=${u.id})}">
+                                <input class="input" name="reason" required maxlength="255" placeholder="Причина (нарушение правил)">
+                                <button type="submit" class="btn btn-danger-outline btn-sm">Заблокировать</button>
+                            </form>
+                        </details>
+                        <form method="post" th:if="${u.blocked}" th:action="@{/admin/users/{id}/unblock(id=${u.id})}" class="admin-inline">
+                            <button type="submit" class="btn btn-soft btn-sm">Разблокировать</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+</body>
+</html>

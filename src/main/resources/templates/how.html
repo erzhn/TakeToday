@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* «Как это работает»: для покупателей и заведений, правила брони, отмены и возврата. */-->
+<head th:replace="~{fragments/layout :: head('Как это работает')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('how')}"></header>
+<main class="container page how-page">
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Как это работает</h1>
+            <p class="page-subtitle">Кафе и пекарни Бишкека продают оставшуюся к концу дня еду со скидкой — вы забираете её сами.</p>
+        </div>
+        <div class="page-actions"><a th:href="@{/catalog}" class="btn btn-primary">Смотреть наборы</a></div>
+    </div>
+
+    <h2 class="how-title">Покупателю</h2>
+    <div class="how-grid">
+        <article class="card how-card">
+            <span class="how-icon"><span class="material-symbols-outlined">search</span></span>
+            <span class="how-num">01</span>
+            <h3>Выберите набор</h3>
+            <p>В каталоге видно состав, цену со скидкой, адрес и время, когда набор можно забрать.</p>
+        </article>
+        <article class="card how-card">
+            <span class="how-icon"><span class="material-symbols-outlined">payments</span></span>
+            <span class="how-num">02</span>
+            <h3>Оплатите за 3 минуты</h3>
+            <p>Выбранные порции закрепляются за вами на 3 минуты. Если оплата не прошла — повторите, пока идёт таймер.</p>
+        </article>
+        <article class="card how-card">
+            <span class="how-icon"><span class="material-symbols-outlined">qr_code</span></span>
+            <span class="how-num">03</span>
+            <h3>Заберите по коду</h3>
+            <p>После оплаты появится 6-значный код и QR-код. Покажите его сотруднику в указанное время.</p>
+        </article>
+    </div>
+
+    <h2 class="how-title">Заведению</h2>
+    <div class="how-grid">
+        <article class="card how-card">
+            <span class="how-icon"><span class="material-symbols-outlined">add_circle</span></span>
+            <span class="how-num">01</span>
+            <h3>Выставьте набор</h3>
+            <p>Фото, состав, цена, сколько порций осталось и время выдачи. Набор сразу появится в каталоге.</p>
+        </article>
+        <article class="card how-card">
+            <span class="how-icon"><span class="material-symbols-outlined">receipt_long</span></span>
+            <span class="how-num">02</span>
+            <h3>Получайте оплаченные заказы</h3>
+            <p>Покупатели платят онлайн — один набор не продаётся дважды. Все заказы видны в кабинете.</p>
+        </article>
+        <article class="card how-card">
+            <span class="how-icon"><span class="material-symbols-outlined">qr_code_scanner</span></span>
+            <span class="how-num">03</span>
+            <h3>Выдайте по коду</h3>
+            <p>Отсканируйте QR-код или введите 6 цифр и подтвердите выдачу. Второй раз по тому же коду не выдать.</p>
+        </article>
+    </div>
+
+    <h2 class="how-title">Правила</h2>
+    <section class="card how-rules">
+        <div><span class="material-symbols-outlined">timer</span>
+            <p><b>Бронь — 3 минуты.</b> Не оплатили — порции возвращаются в продажу.</p></div>
+        <div><span class="material-symbols-outlined">currency_exchange</span>
+            <p><b>Отмена до начала выдачи.</b> Деньги вернутся на карту автоматически. Если заведение не может выдать заказ — тоже.</p></div>
+        <div><span class="material-symbols-outlined">schedule</span>
+            <p><b>Не успели забрать</b> — после окончания времени выдачи код перестаёт действовать, деньги не возвращаются.</p></div>
+        <div><span class="material-symbols-outlined">lock</span>
+            <p><b>Код только ваш.</b> По нему выдают заказ — не передавайте его посторонним.</p></div>
+    </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

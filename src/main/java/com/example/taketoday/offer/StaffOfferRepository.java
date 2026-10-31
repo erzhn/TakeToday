@@ -65,8 +65,10 @@ public class StaffOfferRepository {
 
     /** Все предложения заведения: сначала самые поздние по времени выдачи. */
     public List<StaffOffer> findByEstablishment(UUID establishmentId) {
-        return db.query("SELECT * FROM offers WHERE establishment_id = ? ORDER BY pickup_end DESC, created_at DESC",
-                MAPPER, establishmentId);
+        return db.query("""
+                        SELECT * FROM offers WHERE establishment_id = ? AND archived = FALSE
+                        ORDER BY pickup_end DESC, created_at DESC
+                        """, MAPPER, establishmentId);
     }
 
     public void insert(StaffOffer o) {
@@ -114,5 +116,22 @@ public class StaffOfferRepository {
 
     private static Timestamp ts(Instant instant) {
         return Timestamp.from(instant);
+    }
+
+    /**
+     * «Повторить»: прошедшее предложение, с которого сделали новое, уходит в архив — иначе в списке остаётся
+     * старая строка с той же кнопкой и каждое нажатие плодит копии.
+     */
+    public void archiveIfExpired(UUID id, UUID establishmentId, java.time.Instant now) {
+        db.update("UPDATE offers SET archived = TRUE, updated_at = ? WHERE id = ? AND establishment_id = ? AND pickup_end <= ?",
+                java.sql.Timestamp.from(now), id, establishmentId, java.sql.Timestamp.from(now));
+    }
+
+    /** Этап 5: причины скрытия администратором (id предложения → причина). */
+    public java.util.Map<UUID, String> hiddenReasons(UUID establishmentId) {
+        java.util.Map<UUID, String> reasons = new java.util.HashMap<>();
+        db.query("SELECT id, hidden_reason FROM offers WHERE establishment_id = ? AND status = 'HIDDEN' AND hidden_reason IS NOT NULL",
+                rs -> { reasons.put(rs.getObject(1, UUID.class), rs.getString(2)); }, establishmentId);
+        return reasons;
     }
 }

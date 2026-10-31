@@ -43,7 +43,9 @@ public class OrderNotificationJob {
         send("status = 'PAID'", OrderNotificationType.PAYMENT_CONFIRMED, "PAYMENT_CONFIRMED");
         send("status = 'PAID' AND pickup_end > ? AND pickup_end <= ?", OrderNotificationType.PICKUP_REMINDER,
                 "PICKUP_REMINDER", Timestamp.from(now), Timestamp.from(now.plusSeconds(REMINDER_SECONDS)));
-        send("status = 'CANCELLED'", OrderNotificationType.ORDER_CANCELLED, "ORDER_CANCELLED");
+        // Письмо об отмене — только по оплаченным заказам: неоплаченная бронь, которая истекла за 3 минуты
+        // или которую покупатель сам отменил, письма не требует
+        send("status = 'CANCELLED' AND paid_at IS NOT NULL", OrderNotificationType.ORDER_CANCELLED, "ORDER_CANCELLED");
         send("refund_status IN ('PENDING', 'COMPLETED', 'FAILED')", OrderNotificationType.REFUND_UPDATED,
                 "REFUND_UPDATED");
     }

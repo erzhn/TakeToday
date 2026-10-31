@@ -84,8 +84,8 @@
                 <span class="stat-label">Оплачено сегодня</span>
                 <span class="stat-icon accent"><span class="material-symbols-outlined">payments</span></span>
             </div>
-            <div class="stat-value"><span th:text="${stats.paidCount}">0</span> <small class="accent" style="color: var(--accent)" th:text="${#numbers.formatInteger(stats.paidAmount, 1, 'WHITESPACE')} + ' сом'">0 сом</small></div>
-            <div class="stat-caption">Суммарная выручка за сегодня</div>
+            <div class="stat-value"><span th:text="${#numbers.formatInteger(stats.paidAmount, 1, 'WHITESPACE')}">0</span> <small>сом</small></div>
+            <div class="stat-caption">Заказов: <span th:text="${stats.paidCount}">0</span> · выручка за сегодня</div>
         </div>
         <div class="stat">
             <div class="stat-head">
@@ -98,10 +98,10 @@
         <div class="stat">
             <div class="stat-head">
                 <span class="stat-label">Ожидают выдачи</span>
-                <span class="badge badge-red" th:text="${venue.todayHours}">19:00–21:00</span>
+                <span class="badge badge-red" th:if="${nextWindow != null}" th:text="${nextWindow}">19:00–21:00</span>
             </div>
             <div class="stat-value accent"><span th:text="${stats.waiting}">0</span> <small>заказов</small></div>
-            <div class="stat-caption">Клиенты скоро подойдут</div>
+            <div class="stat-caption" th:text="${stats.waiting > 0} ? 'Оплачены, покупатели скоро подойдут' : 'Сейчас никто не ждёт выдачи'">Клиенты скоро подойдут</div>
         </div>
     </div>
 
@@ -163,6 +163,9 @@
                                     <span class="badge badge-soft" th:text="${o.foodTypeTitle}">Выпечка</span>
                                     <span class="badge" th:classappend="${o.state.css}" th:text="${o.state.title}">Активно</span>
                                 </div>
+                                <!--/* Этап 5: причина скрытия администратором */-->
+                                <div class="offer-sub" style="color: var(--error)" th:if="${hiddenReasons[o.id] != null}"
+                                     th:text="'Причина: ' + ${hiddenReasons[o.id]}">Причина</div>
                             </div>
                         </div>
                     </td>

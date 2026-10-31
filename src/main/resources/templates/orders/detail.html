@@ -7,8 +7,16 @@
 <main class="container page order-page">
     <link rel="stylesheet" th:href="@{/css/payment.css}">
 
+    <!--/* Этап 5: результат отмены */-->
+    <div class="order-notice is-ok" role="status" th:if="${cancelMessage}">
+        <span class="material-symbols-outlined">check_circle</span><span th:text="${cancelMessage}"></span>
+    </div>
+    <div class="order-notice is-error" role="alert" th:if="${cancelError}">
+        <span class="material-symbols-outlined">error</span><span th:text="${cancelError}"></span>
+    </div>
+
     <!--/* ===== Оплачен ===== */-->
-    <th:block th:if="${order.paid}">
+    <th:block th:if="${order.paid and !pickupOver}">
         <section class="card order-hero">
             <span class="order-hero-icon"><span class="material-symbols-outlined icon-fill">check_circle</span></span>
             <div class="order-hero-text">
@@ -107,6 +115,24 @@
             </div>
         </section>
 
+        <!--/* Этап 5: отмена до начала выдачи с автоматическим возвратом (п. 4.6.4) */-->
+        <section class="card order-cancel">
+            <details th:if="${canCancel}" class="order-cancel-details">
+                <summary><span class="material-symbols-outlined icon-sm">close</span>Отменить заказ</summary>
+                <p>Отменить можно до начала выдачи — до <b th:text="${order.pickupStartText}">19:00</b>.
+                    <b th:text="${order.amount} + ' сом'"></b> вернутся на карту<span
+                            th:if="${payment != null and payment.cardLast4() != null}"> •••• <span th:text="${payment.cardLast4()}"></span></span>
+                    автоматически, порции вернутся в продажу.</p>
+                <form method="post" th:action="@{/orders/{id}/cancel(id=${order.id})}" data-cancel-form>
+                    <button type="submit" class="btn btn-danger-outline">Да, отменить и вернуть деньги</button>
+                </form>
+            </details>
+            <p class="muted text-sm" th:unless="${canCancel}">
+                <span class="material-symbols-outlined icon-xs">info</span>
+                Выдача уже началась (<span th:text="${order.pickupStartText}"></span>) — отменить заказ нельзя.
+                Если не успеваете, свяжитесь с заведением.</p>
+        </section>
+
         <div class="order-actions">
             <p class="muted text-sm">Не передавайте код посторонним: по нему выдают ваш заказ.</p>
             <a th:href="@{/catalog}" class="btn btn-soft">В каталог</a>
@@ -125,6 +151,37 @@
         <a th:href="@{/catalog}" class="btn btn-primary">Выбрать ещё набор</a>
     </section>
 
+    <!--/* ===== Время выдачи прошло, заказ не забрали ===== */-->
+    <section class="card order-late" th:if="${pickupOver}">
+        <span class="order-hero-icon is-muted"><span class="material-symbols-outlined">schedule</span></span>
+        <h1>Время получения истекло</h1>
+        <p>Заказ № <b th:text="${order.number}"></b> «<span th:text="${order.title}"></span>» можно было забрать
+            <span th:text="${order.pickupDay} + ', ' + ${order.pickupWindow}"></span>. Код больше не действует.</p>
+        <p class="muted">Если заказ не забрали вовремя, деньги не возвращаются. Если вы не смогли забрать заказ по вине
+            заведения — напишите в поддержку, администратор рассмотрит возврат.</p>
+        <a th:href="@{/catalog}" class="btn btn-primary">В каталог</a>
+    </section>
+
+    <!--/* ===== Отменён покупателем, заведением или администратором (этап 5) ===== */-->
+    <section class="card order-late" th:if="${order.cancelledByPerson}">
+        <span class="order-hero-icon is-warning"><span class="material-symbols-outlined">block</span></span>
+        <h1 th:text="${order.cancelTitle}">Заказ отменён</h1>
+        <p>Заказ № <b th:text="${order.number}"></b> «<span th:text="${order.title}"></span>» ×
+            <span th:text="${order.quantity}"></span> отменён <span th:text="${order.cancelledAtText}"></span>.</p>
+        <p th:if="${order.cancelComment != null and order.cancelReason != 'CUSTOMER'}">Причина:
+            <span th:text="${order.cancelComment}"></span></p>
+        <th:block th:if="${order.paidAt != null}">
+            <p><b th:text="${order.amount} + ' сом'"></b> — возврат на карту<span
+                    th:if="${payment != null and payment.cardLast4() != null}"> •••• <span th:text="${payment.cardLast4()}"></span></span>:
+                <span class="badge" th:classappend="${order.refundStatus == 'COMPLETED'} ? 'badge-green' : (${order.refundStatus == 'FAILED'} ? 'badge-red' : 'status-pending')"
+                      th:text="${order.refundTitle}">Деньги возвращены</span></p>
+            <p class="muted text-sm" th:if="${order.refundStatus == 'COMPLETED'}">В учебной платёжной службе деньги
+                возвращаются сразу; у настоящего банка зачисление занимает до нескольких дней.</p>
+        </th:block>
+        <p class="muted" th:if="${order.paidAt == null}">Заказ не был оплачен — деньги не списывались.</p>
+        <a th:href="@{/catalog}" class="btn btn-primary">Выбрать набор в каталоге</a>
+    </section>
+
     <!--/* ===== Деньги пришли после окончания брони ===== */-->
     <section class="card order-late" th:if="${order.latePayment}">
         <span class="order-hero-icon is-warning"><span class="material-symbols-outlined">currency_exchange</span></span>
@@ -132,7 +189,8 @@
         <p>Время на оплату (3 минуты) истекло раньше, чем платёжная служба подтвердила оплату.
             Порции вернулись в продажу, поэтому заказ № <b th:text="${order.number}"></b> отменён.</p>
         <p><b th:text="${order.amount} + ' сом'"></b> вернём на карту<span th:if="${payment != null and payment.cardLast4() != null}"> •••• <span th:text="${payment.cardLast4()}"></span></span>.
-            Статус возврата: <span class="badge status-pending" th:text="${order.refundStatus == 'COMPLETED'} ? 'Возвращено' : 'Ожидает возврата'"></span></p>
+            Статус возврата: <span class="badge" th:classappend="${order.refundStatus == 'COMPLETED'} ? 'badge-green' : (${order.refundStatus == 'FAILED'} ? 'badge-red' : 'status-pending')"
+                                   th:text="${order.refundTitle}"></span></p>
         <a th:href="@{/catalog}" class="btn btn-primary">Выбрать набор в каталоге</a>
     </section>
 </main>

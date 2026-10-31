@@ -77,7 +77,8 @@ public final class OrderHistoryEntry {
         if ("AWAITING_PAYMENT".equals(status)) return "Ожидает оплаты";
         if ("PAID".equals(status)) return "Оплачен";
         if ("RECEIVED".equals(status) || "ISSUED".equals(status) || "PICKED_UP".equals(status)) return "Получен";
-        if ("RESERVATION_EXPIRED".equals(cancelReason)) return "Время получения истекло";
+        // Бронь не оплатили за 3 минуты — это не «время получения истекло» (то — про оплаченный, но не забранный заказ)
+        if ("RESERVATION_EXPIRED".equals(cancelReason)) return "Бронь не оплачена";
         return "Отменен";
     }
 

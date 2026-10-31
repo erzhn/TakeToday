@@ -5,6 +5,7 @@
 
 const app = document.querySelector('#app');
 const nav = document.querySelector('#nav');
+const navRight = document.querySelector('#nav-right');
 
 const ROLES = { GUEST: 'Гость', CUSTOMER: 'Покупатель', STAFF: 'Сотрудник заведения', ADMIN: 'Администратор' };
 const AUTH_PAGES = ['login', 'register', 'forgot', 'code', 'recovery', 'recovery-code', 'recovery-password'];
@@ -85,41 +86,42 @@ function navigation(page) {
     document.body.classList.toggle('is-auth', authPage);
 
     if (authPage) {
-        nav.innerHTML =
-            '<span class="pill hide-mobile">' + icon('location_on', 'icon-sm') + 'Бишкек, KG</span>' +
+        nav.innerHTML = '';
+        navRight.innerHTML =
             '<a class="link-button hide-mobile" href="mailto:support@taketoday.kg">' + icon('help', 'icon-sm') + 'Поддержка</a>' +
             '<a class="btn btn-sm btn-back" href="#home">' + icon('arrow_back', 'icon-sm') + 'На главную</a>';
         return;
     }
 
-    const catalog = '<a class="nav-link hide-mobile" href="/catalog">Каталог предложений</a>';
+    // Те же пункты и тот же порядок, что в шапке Thymeleaf (fragments/layout.html)
+    const links = '<a class="nav-link" href="/catalog">Каталог предложений</a>' +
+        '<a class="nav-link" href="/how">Как это работает</a>';
     if (user.role === 'GUEST') {
-        nav.innerHTML = catalog +
-            '<a class="nav-link hide-mobile" href="#how">Как это работает</a>' +
-            '<a class="nav-link" href="#login">Войти</a>' +
-            '<a class="btn btn-primary btn-sm" href="#register">Регистрация</a>';
+        nav.innerHTML = links;
+        navRight.innerHTML = '<a class="btn btn-primary btn-sm" href="#login">Войти</a>';
         return;
     }
 
-    const section = user.role === 'STAFF' ? '<a class="nav-link hide-mobile" href="/staff">Кабинет заведения</a>'
-        : user.role === 'ADMIN' ? '<a class="nav-link hide-mobile" href="/admin">Админ-панель</a>'
-        : '<a class="nav-link hide-mobile" href="/orders">Мои заказы</a>';
-    nav.innerHTML = catalog + '<a class="nav-link hide-mobile" href="#how">Как это работает</a>' + section +
+    const section = user.role === 'STAFF' ? '<a class="nav-link" href="/staff">Кабинет заведения</a>'
+        : user.role === 'ADMIN' ? '<a class="nav-link" href="/admin">Админ-панель</a>'
+        : '<a class="nav-link" href="/orders">Мои заказы</a>';
+    nav.innerHTML = links + section;
+    navRight.innerHTML =
         '<a class="user-chip" href="/profile" title="Профиль">' +
         '<span class="avatar">' + icon('person', 'icon-sm') + '</span>' +
         '<span class="hide-mobile"><span class="user-chip-name">' + escape(shortName(user.name)) + '</span><br>' +
-        '<span class="user-chip-role">' + escape(ROLES[user.role]) + '</span></span></a>' +
-        '<button type="button" class="link-button" id="logout">' + icon('logout', 'icon-sm') + '<span class="hide-mobile">Выйти</span></button>';
-    document.querySelector('#logout').addEventListener('click', async () => {
-        try {
-            await api('/auth/logout', {});
-            user = { role: 'GUEST' };
-            clearChallenge();
-            go('home');
-        } catch (e) {
-            notice(e.message);
-        }
-    });
+        '<span class="user-chip-role">' + escape(ROLES[user.role]) + '</span></span></a>';
+}
+
+async function logout() {
+    try {
+        await api('/auth/logout', {});
+        user = { role: 'GUEST' };
+        clearChallenge();
+        go('home');
+    } catch (e) {
+        notice(e.message);
+    }
 }
 
 /** «Айбек Джумабаев» → «Айбек Д.» */
@@ -146,7 +148,7 @@ async function home() {
             ? '<a class="btn btn-primary" href="/catalog">' + icon('search') + 'Смотреть наборы</a><a class="btn btn-outline" href="#register">Создать аккаунт</a>'
             : '<a class="btn btn-primary" href="/catalog">' + icon('search') + 'Смотреть наборы</a><a class="btn btn-outline" href="/profile">' + icon('person') + 'Личный кабинет</a>') +
         '</div>' +
-        '<p class="hint">' + icon('info', 'icon-sm') + (guest ? 'Смотреть предложения можно без регистрации. Чтобы бронировать и оплачивать, войдите.' : 'Бронирование и оплата появятся на следующем этапе.') + '</p>' +
+        '<p class="hint">' + icon('info', 'icon-sm') + (guest ? 'Смотреть предложения можно без регистрации. Чтобы бронировать и оплачивать, войдите.' : 'Оплата онлайн, отмена до начала выдачи — деньги вернутся автоматически.') + '</p>' +
         '</div>' +
         '<div class="hero-art" aria-hidden="true">' +
         '<div class="hero-card"><span class="hero-card-tag">−50%</span>' + icon('bakery_dining') +
@@ -167,7 +169,9 @@ async function home() {
             '<div class="identity-name">Вы вошли, ' + escape(user.name) + '</div>' +
             '<div class="identity-meta">' + escape(user.email) + ' · ' + escape(ROLES[user.role]) + '</div>' +
             '<div id="role-info" class="hint">Загружаем ваш раздел…</div></div></div>' +
-            '<div class="account-actions">' + sectionButton() + '</div></section>';
+            '<div class="account-actions">' + sectionButton() +
+            '<button type="button" class="link-button" id="logout">' + icon('logout', 'icon-sm') + 'Выйти</button></div></section>';
+        document.querySelector('#logout').addEventListener('click', logout);
         try {
             const data = await api('/' + user.role.toLowerCase() + '/home');
             const target = document.querySelector('#role-info');

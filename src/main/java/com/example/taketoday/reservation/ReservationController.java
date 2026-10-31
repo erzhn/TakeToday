@@ -52,7 +52,7 @@ public class ReservationController {
         response.setHeader("Cache-Control", "no-store");
         Reservation order = reservations.get(id, customer);
         // Оплаченный заказ и поздняя оплата показываются на странице заказа с кодом получения (этап 3)
-        if ("PAID".equals(order.status()) || "ISSUED".equals(order.status()) || payments.order(id, customer).isLatePayment())
+        if (payments.order(id, customer).hasOrderPage())
             return "redirect:/orders/" + id;
         model.addAttribute("order", order);
         model.addAttribute("serverNow", clock.instant());

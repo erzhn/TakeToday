@@ -12,21 +12,29 @@
     <link rel="stylesheet" href="/css/app.css">
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/app.js"></script>
+    <!--/* Общие мелочи интерфейса, как на остальных страницах: меню на телефоне */-->
+    <script src="/js/app.js" defer></script>
 </head>
 <body>
 <!-- Главная, вход, регистрация, код из письма и сброс пароля — одна страница (app.js), экраны 1 и 12 в Figma -->
+<!--/* Та же разметка шапки, что в fragments/layout.html (Thymeleaf): при переходе между главной
+      и остальными страницами шапка не «прыгает». Ссылки заполняет app.js — от роли пользователя. */-->
 <header class="site-header" id="site-header">
     <div class="container header-row">
         <div class="header-left">
-            <a class="brand" href="#home" aria-label="TakeToday — на главную">
-                <span class="brand-mark"><span class="material-symbols-outlined icon-fill">eco</span></span>
-                <span class="brand-text">
-                    <span class="logo">Take<span>Today</span></span>
-                    <span class="brand-sub">Спасаем еду в Бишкеке</span>
-                </span>
-            </a>
+            <a href="/" class="logo" aria-label="TakeToday — на главную">Take<span>Today</span></a>
+            <span class="pill serif hide-mobile hide-tablet">
+                <span class="material-symbols-outlined icon-sm">location_on</span>Бишкек
+                <span class="material-symbols-outlined icon-sm">expand_more</span>
+            </span>
         </div>
-        <nav id="nav" class="header-right" aria-label="Навигация"></nav>
+        <nav id="nav" class="nav header-nav" aria-label="Основное меню"></nav>
+        <div class="header-right">
+            <span id="nav-right" class="header-right"></span>
+            <button type="button" class="icon-button menu-toggle" data-menu-toggle aria-expanded="false" aria-label="Меню">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+        </div>
     </div>
 </header>
 
@@ -39,7 +47,7 @@
             <div>© 2026 TakeToday, Бишкек. Все права защищены.</div>
         </div>
         <nav class="footer-links" aria-label="Ссылки в подвале">
-            <a href="#how">Как это работает</a>
+            <a href="/how">Как это работает</a>
             <a href="mailto:partners@taketoday.kg">Заведениям и пекарням</a>
             <a href="mailto:support@taketoday.kg">Поддержка</a>
         </nav>

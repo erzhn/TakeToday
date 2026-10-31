@@ -202,6 +202,10 @@ class PaymentFlowTests extends PaymentTestSupport {
         assertEquals(1, ((Number) offerRow().get("sold_portions")).intValue());
         assertTrue(db.queryForObject("SELECT error_message FROM payments WHERE provider_payment_id = ?", String.class, first)
                 .contains("вернуть"));
+        // Этап 5: лишняя сумма возвращается автоматически, заказ остаётся оплаченным
+        assertEquals(1, count("SELECT COUNT(*) FROM refunds r JOIN payments p ON p.id = r.payment_id "
+                + "WHERE p.provider_payment_id = ? AND r.status = 'COMPLETED'", first));
+        assertEquals("PAID", order(id).get("status"));
     }
 
     // ---------- Сумма ----------
@@ -243,7 +247,9 @@ class PaymentFlowTests extends PaymentTestSupport {
         Map<String, Object> row = order(id);
         assertEquals("CANCELLED", row.get("status"));
         assertEquals("LATE_PAYMENT", row.get("cancel_reason"));
-        assertEquals("PENDING", row.get("refund_status"));
+        // Этап 5: деньги возвращаются сразу через учебную платёжную службу
+        assertEquals("COMPLETED", row.get("refund_status"));
+        assertEquals(1, count("SELECT COUNT(*) FROM refunds WHERE order_id = ? AND status = 'COMPLETED' AND amount = 500", id));
         assertNull(row.get("pickup_code"), "кода нет — заказ не выдаётся");
         assertEquals(0, ((Number) offerRow().get("reserved_portions")).intValue(), "порции вернулись в продажу");
         assertEquals(0, ((Number) offerRow().get("sold_portions")).intValue());
@@ -264,7 +270,8 @@ class PaymentFlowTests extends PaymentTestSupport {
         assertEquals("CANCELLED", order(id).get("status"));
         assertEquals(PaymentResult.LATE_PAYMENT, payments.complete(provider, true, "4242", null));
         assertEquals("LATE_PAYMENT", order(id).get("cancel_reason"));
-        assertEquals("PENDING", order(id).get("refund_status"));
+        assertEquals("COMPLETED", order(id).get("refund_status"));
+        assertEquals(1, count("SELECT COUNT(*) FROM refunds WHERE order_id = ?", id), "возврат один");
         assertEquals(0, ((Number) offerRow().get("reserved_portions")).intValue(), "бронь не снята дважды");
     }
 

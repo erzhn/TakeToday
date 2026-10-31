@@ -128,18 +128,29 @@ public class PickupService {
         LocalDate today = now.atZone(AppTime.ZONE).toLocalDate();
         Timestamp from = Timestamp.from(today.atStartOfDay(AppTime.ZONE).toInstant());
         Timestamp to = Timestamp.from(today.plusDays(1).atStartOfDay(AppTime.ZONE).toInstant());
-        return db.queryForObject("""
-                        SELECT
-                          COALESCE(SUM(CASE WHEN r.paid_at >= ? AND r.paid_at < ? AND r.status <> 'CANCELLED' THEN 1 ELSE 0 END), 0) AS paid_count,
-                          COALESCE(SUM(CASE WHEN r.paid_at >= ? AND r.paid_at < ? AND r.status <> 'CANCELLED' THEN r.amount ELSE 0 END), 0) AS paid_amount,
-                          COALESCE(SUM(CASE WHEN r.issued_at >= ? AND r.issued_at < ? THEN 1 ELSE 0 END), 0) AS issued_count,
-                          COALESCE(SUM(CASE WHEN r.status = 'PAID' AND r.pickup_end > ? THEN 1 ELSE 0 END), 0) AS waiting
-                        FROM reservation_orders r JOIN offers o ON o.id = r.offer_id
-                        WHERE o.establishment_id = ?
-                        """,
+        String sql = "SELECT"
+                + " COALESCE(SUM(CASE WHEN " + PAID_TODAY + " THEN 1 ELSE 0 END), 0) AS paid_count,"
+                + " COALESCE(SUM(CASE WHEN " + PAID_TODAY + " THEN r.amount ELSE 0 END), 0) AS paid_amount,"
+                + " COALESCE(SUM(CASE WHEN r.issued_at >= ? AND r.issued_at < ? THEN 1 ELSE 0 END), 0) AS issued_count,"
+                + " COALESCE(SUM(CASE WHEN r.status = 'PAID' AND r.pickup_end > ? THEN 1 ELSE 0 END), 0) AS waiting"
+                + " FROM reservation_orders r JOIN offers o ON o.id = r.offer_id"
+                + " WHERE o.establishment_id = ?";
+        return db.queryForObject(sql,
                 (rs, n) -> new PickupStats(rs.getInt("paid_count"), rs.getLong("paid_amount"),
                         rs.getInt("issued_count"), rs.getInt("waiting")),
-                from, to, from, to, from, to, Timestamp.from(now), establishmentId);
+                from, to, from, to, from, to, from, to, from, to, Timestamp.from(now), establishmentId);
+    }
+
+    /**
+     * «Оплачено сегодня»: заказ оплачен (не отменён) и либо оплата прошла сегодня, либо выдача сегодня —
+     * заказ на сегодняшний набор, оплаченный накануне, тоже относится к сегодняшней выручке заведения.
+     */
+    private static final String PAID_TODAY = "r.status IN ('PAID', 'ISSUED', 'PICKUP_EXPIRED') AND "
+            + "((r.paid_at >= ? AND r.paid_at < ?) OR (r.pickup_start >= ? AND r.pickup_start < ?))";
+
+    /** Окно выдачи ближайшего заказа, который ждёт покупателя, — «19:00–22:00»; пусто, если никто не ждёт. */
+    public java.util.Optional<String> nextWaitingWindow(UUID establishmentId) {
+        return waiting(establishmentId, 1).stream().findFirst().map(o -> o.getPickupWindow().replace(" – ", "–"));
     }
 
     /** Оплаченные заказы, которые ещё ждут покупателя, — ближайшие по времени выдачи. */

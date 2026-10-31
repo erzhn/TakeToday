@@ -225,6 +225,10 @@ class StaffOfferPageTests extends Stage1TestSupport {
                 .andExpect(redirectedUrl("/staff#offers"));
         assertThat(db.queryForObject("SELECT COUNT(*) FROM offers WHERE photo_path = '/images/offers/bakery.jpg'", Integer.class))
                 .isEqualTo(2);
+        // Этап 5: старое предложение уходит в архив — в списке нет второй строки с «Повторить»
+        assertThat(offerRow(id).get("archived")).isEqualTo(true);
+        String page = mvc.perform(get("/staff").with(as(staff))).andReturn().getResponse().getContentAsString();
+        assertThat(page.split("Вчерашний набор", -1).length - 1).isEqualTo(1);
     }
 
     // ---------- Только своё (п. 5.2.3) ----------

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* Админ-панель: журнал событий — оплата, ошибки, выдача, возвраты, действия администратора (п. 5.3.4 ТЗ). */-->
+<head th:replace="~{fragments/layout :: head('Журнал событий')}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('audit')}"></aside>
+    <main class="admin-main">
+        <link rel="stylesheet" th:href="@{/css/admin.css}">
+        <div th:replace="~{admin/parts :: top('Журнал событий', 'Чтобы установить причину проблемы: оплата, ошибки, выдача, возвраты, блокировки')}"></div>
+
+        <form class="admin-filters" method="get" th:action="@{/admin/audit}" role="search">
+            <input class="input" type="search" name="q" th:value="${q}" placeholder="№ заказа, тип события (REFUND, PAYMENT…) или текст" aria-label="Поиск">
+            <button class="btn btn-soft" type="submit"><span class="material-symbols-outlined icon-sm">search</span>Найти</button>
+            <span class="admin-count">Последние <span th:text="${events.size()}">0</span></span>
+        </form>
+        <p class="muted" th:if="${events.isEmpty()}">Событий не нашли.</p>
+        <ul class="admin-events" th:unless="${events.isEmpty()}">
+            <li th:each="e : ${events}">
+                <time th:text="${e.createdText}"></time>
+                <span class="badge" th:classappend="${e.css}" th:text="${e.eventType}"></span>
+                <span><span th:text="${e.details}"></span>
+                    <a th:if="${e.orderId != null}" th:href="@{/admin/orders/{id}(id=${e.orderId})}" th:text="' · № ' + ${e.number}"></a>
+                    <small class="muted" th:if="${e.userName != null}" th:text="' — ' + ${e.userName}"></small></span>
+            </li>
+        </ul>
+    </main>
+</div>
+</body>
+</html>

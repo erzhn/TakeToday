@@ -53,6 +53,10 @@ public class StaffController {
         model.addAttribute("onSaleCount", offers.stream().filter(r -> r.getState() == OfferRow.State.ACTIVE).count());
         // Этап 4: цифры за день — оплачено, выдано, ждут выдачи
         model.addAttribute("stats", pickup.stats(staff.getEstablishmentId()));
+        // Время выдачи ближайшего ждущего заказа (а не часы работы заведения)
+        model.addAttribute("nextWindow", pickup.nextWaitingWindow(staff.getEstablishmentId()).orElse(null));
+        // Этап 5: за что администратор скрыл предложение
+        model.addAttribute("hiddenReasons", offerService.hiddenReasons(staff));
         return "staff/home";
     }
 

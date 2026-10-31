@@ -16,9 +16,15 @@ import java.util.UUID;
 public class MockPaymentGateway implements PaymentGateway {
 
     private final boolean available;
+    private final boolean refundsAvailable;
 
-    public MockPaymentGateway(@Value("${app.payment.mock.available:true}") boolean available) {
+    /**
+     * @param refundsAvailable false — служба «не отвечает» на возвраты: так проверяется повтор и ручной возврат
+     */
+    public MockPaymentGateway(@Value("${app.payment.mock.available:true}") boolean available,
+                              @Value("${app.payment.mock.refunds-available:true}") boolean refundsAvailable) {
         this.available = available;
+        this.refundsAvailable = refundsAvailable;
     }
 
     @Override
@@ -28,5 +34,16 @@ public class MockPaymentGateway implements PaymentGateway {
         }
         String providerId = "mock_" + UUID.randomUUID().toString().replace("-", "");
         return new Checkout(providerId, "/mock-pay/" + providerId);
+    }
+
+    @Override
+    public String refund(String providerPaymentId, int amount, String reason) {
+        if (!available || !refundsAvailable) {
+            throw new PaymentUnavailableException("Учебная платёжная служба не принимает возвраты (app.payment.mock.refunds-available)");
+        }
+        if (providerPaymentId == null || !providerPaymentId.startsWith("mock_") || amount <= 0) {
+            throw new com.example.taketoday.payment.RefundDeclinedException("Платёж не найден у платёжной службы");
+        }
+        return "mockrefund_" + UUID.randomUUID().toString().replace("-", "");
     }
 }

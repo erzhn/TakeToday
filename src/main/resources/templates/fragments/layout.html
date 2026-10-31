@@ -77,7 +77,7 @@
 
         <nav class="nav header-nav" aria-label="Основное меню">
             <a th:href="@{/catalog}" class="nav-link" th:classappend="${active == 'catalog'} ? 'active'">Каталог предложений</a>
-            <a href="/#home" class="nav-link" th:classappend="${active == 'how'} ? 'active'">Как это работает</a>
+            <a th:href="@{/how}" class="nav-link" th:classappend="${active == 'how'} ? 'active'">Как это работает</a>
             <a th:if="${headerInfo != null and headerInfo.customer}"
                th:href="@{/orders}" class="nav-link" th:classappend="${active == 'orders' or active == 'profile'} ? 'active'">Мои заказы</a>
             <a th:if="${headerInfo != null and headerInfo.admin}"
@@ -141,7 +141,7 @@
             <div>© 2026 TakeToday, Бишкек. Все права защищены.</div>
         </div>
         <nav class="footer-links" aria-label="Ссылки в подвале">
-            <a href="/#home">Как это работает</a>
+            <a th:href="@{/how}">Как это работает</a>
             <a href="mailto:partners@taketoday.kg">Заведениям и пекарням</a>
             <a href="mailto:support@taketoday.kg">Контакты</a>
         </nav>
@@ -157,7 +157,7 @@
         </div>
         <nav class="footer-links" aria-label="Ссылки в подвале">
             <a href="mailto:partners@taketoday.kg">Поддержка партнёров</a>
-            <a href="/#home">Как это работает</a>
+            <a th:href="@{/how}">Как это работает</a>
         </nav>
     </div>
 </footer>
@@ -169,11 +169,18 @@
         <a th:href="@{/admin}" th:classappend="${active == 'overview'} ? 'active'">
             <span class="material-symbols-outlined">dashboard</span>Обзор
         </a>
-        <span class="disabled"><span class="material-symbols-outlined">group</span>Пользователи<span class="soon">этап 5</span></span>
-        <span class="disabled"><span class="material-symbols-outlined">storefront</span>Заведения<span class="soon">этап 5</span></span>
-        <span class="disabled"><span class="material-symbols-outlined">inventory_2</span>Предложения<span class="soon">этап 5</span></span>
-        <span class="disabled"><span class="material-symbols-outlined">payments</span>Платежи<span class="soon">этап 5</span></span>
-        <span class="disabled"><span class="material-symbols-outlined">currency_exchange</span>Возвраты<span class="soon">этап 5</span></span>
+        <a th:href="@{/admin/users}" th:classappend="${active == 'users'} ? 'active'">
+            <span class="material-symbols-outlined">group</span>Пользователи</a>
+        <a th:href="@{/admin/venues}" th:classappend="${active == 'venues'} ? 'active'">
+            <span class="material-symbols-outlined">storefront</span>Заведения</a>
+        <a th:href="@{/admin/offers}" th:classappend="${active == 'offers'} ? 'active'">
+            <span class="material-symbols-outlined">inventory_2</span>Предложения</a>
+        <a th:href="@{/admin/payments}" th:classappend="${active == 'payments'} ? 'active'">
+            <span class="material-symbols-outlined">payments</span>Заказы и платежи</a>
+        <a th:href="@{/admin/refunds}" th:classappend="${active == 'refunds'} ? 'active'">
+            <span class="material-symbols-outlined">currency_exchange</span>Возвраты</a>
+        <a th:href="@{/admin/audit}" th:classappend="${active == 'audit'} ? 'active'">
+            <span class="material-symbols-outlined">history</span>Журнал событий</a>
         <a th:href="@{/profile}"><span class="material-symbols-outlined">person</span>Профиль</a>
         <form th:action="@{/api/auth/logout}" method="post" data-logout class="inline-form">
             <button type="submit"><span class="material-symbols-outlined">logout</span>Выйти</button>
