@@ -209,6 +209,11 @@ public class OfferService {
 
     /** Вернуть снятое предложение в продажу. Если время выдачи прошло — нельзя, нужно изменить время. */
     @Transactional
+    /** Этап 5: причины, по которым администратор скрыл предложения заведения (id → причина). */
+    public java.util.Map<UUID, String> hiddenReasons(CurrentAccount staff) {
+        return staff.getEstablishmentId() == null ? java.util.Map.of() : offers.hiddenReasons(staff.getEstablishmentId());
+    }
+
     public boolean resume(CurrentAccount staff, UUID offerId) {
         StaffOffer offer = getForStaff(staff, offerId);
         if (offer.isExpired(Instant.now())) {

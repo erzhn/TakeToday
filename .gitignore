@@ -40,3 +40,6 @@ Thumbs.db
 
 # Загруженные логотипы (локально)
 uploads/
+
+# Резервные копии базы (scripts/backup.ps1)
+backups/

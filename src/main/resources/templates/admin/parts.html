@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* Общие части страниц админ-панели (этап 5, Эржан). */-->
+<body>
+
+<!--/* Заголовок страницы и карточка администратора */-->
+<div th:fragment="top(title, subtitle)" class="admin-top">
+    <div>
+        <h1 class="page-title" th:text="${title}">Обзор</h1>
+        <p class="page-subtitle" th:text="${subtitle}">Подзаголовок</p>
+    </div>
+    <a th:href="@{/profile}" class="user-chip" th:if="${headerInfo != null}">
+        <span class="avatar" th:text="${headerInfo.initials}">А</span>
+        <span class="hide-mobile">
+            <span class="user-chip-name" th:text="${headerInfo.shortName}">Администратор</span><br>
+            <span class="user-chip-role">Администратор</span>
+        </span>
+    </a>
+</div>
+
+<!--/* Итог действия: успех или ошибка */-->
+<div th:fragment="messages" th:remove="tag">
+    <div class="admin-alert is-ok" role="status" th:if="${success}">
+        <span class="material-symbols-outlined">check_circle</span><span th:text="${success}"></span>
+    </div>
+    <div class="admin-alert is-error" role="alert" th:if="${adminError}">
+        <span class="material-symbols-outlined">error</span><span th:text="${adminError}"></span>
+    </div>
+</div>
+
+</body>
+</html>

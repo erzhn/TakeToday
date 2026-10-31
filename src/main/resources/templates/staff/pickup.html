@@ -108,6 +108,24 @@
                             <span class="material-symbols-outlined icon-sm">task_alt</span>Подтвердить выдачу
                         </button>
                     </form>
+                    <!--/* Этап 5: заведение не может выдать — отмена с автоматическим возвратом денег (п. 4.6.4) */-->
+                    <details class="pickup-cannot" th:if="${check.canIssue}">
+                        <summary>Не можете выдать заказ?</summary>
+                        <form method="post" th:action="@{/staff/pickup/{id}/cancel(id=${o.id()})}" class="pickup-cannot-form" data-confirm-form>
+                            <label class="field">
+                                <span class="field-label">Причина — её увидит покупатель</span>
+                                <select name="reason" class="select" required>
+                                    <option value="">Выберите причину</option>
+                                    <option>Набор закончился</option>
+                                    <option>Заведение закрыто</option>
+                                    <option>Продукты испортились</option>
+                                    <option>Другая причина — свяжемся с покупателем</option>
+                                </select>
+                            </label>
+                            <button type="submit" class="btn btn-danger-outline">Отменить заказ и вернуть деньги</button>
+                            <p class="hint">Деньги вернутся покупателю автоматически, порции не вернутся в продажу.</p>
+                        </form>
+                    </details>
                 </div>
             </th:block>
 

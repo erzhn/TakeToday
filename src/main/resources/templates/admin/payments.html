@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* Админ-панель: заказы, суммы платежей, результаты оплаты и возвраты (экран 11, п. 4.10.2 ТЗ). */-->
+<head th:replace="~{fragments/layout :: head('Заказы и платежи')}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('payments')}"></aside>
+    <main class="admin-main">
+        <link rel="stylesheet" th:href="@{/css/admin.css}">
+        <div th:replace="~{admin/parts :: top('Заказы и платежи', 'Каждая попытка оплаты: сумма, результат, состояние заказа и возврата')}"></div>
+        <div th:replace="~{admin/parts :: messages}"></div>
+
+        <form class="admin-filters" method="get" th:action="@{/admin/payments}" role="search">
+            <input class="input" type="search" name="q" th:value="${q}" placeholder="№ заказа, покупатель, почта или заведение" aria-label="Поиск">
+            <select class="select" name="status" aria-label="Результат">
+                <option value="">Все платежи</option>
+                <option value="SUCCEEDED" th:selected="${status == 'SUCCEEDED'}">Успешные</option>
+                <option value="FAILED" th:selected="${status == 'FAILED'}">Ошибки оплаты</option>
+                <option value="CREATED" th:selected="${status == 'CREATED'}">Ожидают оплаты</option>
+                <option value="CANCELLED" th:selected="${status == 'CANCELLED'}">Заменённые попытки</option>
+                <option value="REFUND" th:selected="${status == 'REFUND'}">С возвратом</option>
+            </select>
+            <button class="btn btn-soft" type="submit"><span class="material-symbols-outlined icon-sm">search</span>Найти</button>
+            <span class="admin-count">Показано: <span th:text="${payments.size()}">0</span></span>
+        </form>
+
+        <div class="table-card admin-table">
+            <table class="table">
+                <thead><tr><th>Время</th><th>Заказ</th><th>Покупатель</th><th>Сумма</th><th>Оплата</th><th>Заказ сейчас</th><th>Возврат</th></tr></thead>
+                <tbody>
+                <tr th:if="${payments.isEmpty()}"><td colspan="7" class="table-empty">Платежей не нашли</td></tr>
+                <tr th:each="p : ${payments}">
+                    <td class="num" th:text="${p.createdText}"></td>
+                    <td><a th:href="@{/admin/orders/{id}(id=${p.orderId})}" th:text="'№ ' + ${p.number}"></a>
+                        <small th:text="${p.title} + ' · ' + ${p.venueName}"></small></td>
+                    <td><span th:text="${p.buyerName}"></span><small th:text="${p.buyerEmail}"></small></td>
+                    <td class="num" th:text="${p.amount} + ' сом'"></td>
+                    <td><span class="badge" th:classappend="${p.statusCss}" th:text="${p.statusTitle}"></span>
+                        <small th:if="${p.cardLast4 != null}" th:text="'Карта •••• ' + ${p.cardLast4}"></small>
+                        <span class="err" th:if="${p.errorMessage != null}" th:text="${p.errorMessage}"></span></td>
+                    <td th:text="${p.orderStatusTitle}"></td>
+                    <td><span class="badge" th:if="${p.refundStatus != 'NONE'}" th:classappend="${p.refundCss}" th:text="${p.refundTitle}"></span>
+                        <span class="muted" th:if="${p.refundStatus == 'NONE'}">—</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+</body>
+</html>

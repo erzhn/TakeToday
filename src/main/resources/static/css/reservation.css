@@ -6,6 +6,8 @@
 .reservation-payment-note { display: flex; gap: 8px; align-items: flex-start; padding: 12px 14px; margin-top: 4px; background: var(--primary-soft); border-radius: var(--radius-sm); font-size: 13px; }
 .reservation-payment-error { display: flex; gap: 8px; align-items: flex-start; padding: 12px 14px; background: var(--error-soft); color: #8c1d18; border-radius: var(--radius-sm); font-size: 14px; line-height: 1.45; }
 .reservation-pay-button { height: 52px; gap: 8px; }
+.reservation-cancel { justify-self: center; text-align: center; }
+.reservation-cancel .link-button { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
 [data-reservation-active] { display: grid; gap: 12px; }
 [data-reservation-error] { color: var(--error); }
 .reservation-shell [hidden] { display: none; }

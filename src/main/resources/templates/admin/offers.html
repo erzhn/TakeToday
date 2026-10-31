@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* Админ-панель: предложения и скрытие нарушающих правила (п. 4.10.1 ТЗ). */-->
+<head th:replace="~{fragments/layout :: head('Предложения')}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('offers')}"></aside>
+    <main class="admin-main">
+        <link rel="stylesheet" th:href="@{/css/admin.css}">
+        <div th:replace="~{admin/parts :: top('Предложения', 'Скрытое предложение пропадает из каталога, новые брони невозможны; оплаченные заказы остаются в силе')}"></div>
+        <div th:replace="~{admin/parts :: messages}"></div>
+
+        <form class="admin-filters" method="get" th:action="@{/admin/offers}" role="search">
+            <input class="input" type="search" name="q" th:value="${q}" placeholder="Название набора или заведения" aria-label="Поиск">
+            <select class="select" name="status" aria-label="Состояние">
+                <option value="">Все</option>
+                <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">В продаже</option>
+                <option value="WITHDRAWN" th:selected="${status == 'WITHDRAWN'}">Сняты заведением</option>
+                <option value="HIDDEN" th:selected="${status == 'HIDDEN'}">Скрыты администратором</option>
+            </select>
+            <button class="btn btn-soft" type="submit"><span class="material-symbols-outlined icon-sm">search</span>Найти</button>
+            <span class="admin-count">Показано: <span th:text="${offers.size()}">0</span></span>
+        </form>
+
+        <div class="table-card admin-table">
+            <table class="table">
+                <thead><tr><th>Набор</th><th>Цена</th><th>Порции</th><th>Выдача</th><th>Состояние</th><th>Действие</th></tr></thead>
+                <tbody>
+                <tr th:if="${offers.isEmpty()}"><td colspan="6" class="table-empty">Предложений не нашли</td></tr>
+                <tr th:each="o : ${offers}">
+                    <td><b th:text="${o.title}">Набор</b><small th:text="${o.venueName}"></small>
+                        <small th:if="${o.ownerBlocked}" class="err">Владелец заблокирован</small></td>
+                    <td class="num"><span th:text="${o.discountPrice} + ' сом'"></span><small><s th:text="${o.regularPrice} + ' сом'"></s></small></td>
+                    <td class="num"><span th:text="${o.available} + ' из ' + ${o.total}"></span>
+                        <small th:text="'продано ' + ${o.sold} + ', в брони ' + ${o.reserved}"></small></td>
+                    <td th:text="${o.pickupText}"></td>
+                    <td><span class="badge" th:classappend="${o.statusCss}" th:text="${o.statusTitle}"></span>
+                        <small th:if="${o.hidden and o.hiddenReason != null}" th:text="${o.hiddenReason}"></small></td>
+                    <td>
+                        <details class="admin-action" th:unless="${o.hidden}">
+                            <summary class="is-danger">Скрыть</summary>
+                            <form method="post" th:action="@{/admin/offers/{id}/hide(id=${o.id})}">
+                                <input class="input" name="reason" required maxlength="255" placeholder="Причина — увидит заведение">
+                                <button type="submit" class="btn btn-danger-outline btn-sm">Скрыть из каталога</button>
+                            </form>
+                        </details>
+                        <form method="post" th:if="${o.hidden}" th:action="@{/admin/offers/{id}/unhide(id=${o.id})}" class="admin-inline">
+                            <button type="submit" class="btn btn-soft btn-sm">Снять скрытие</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+</body>
+</html>

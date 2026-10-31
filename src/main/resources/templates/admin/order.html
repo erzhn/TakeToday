@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* Админ-панель: заказ целиком — платежи, возвраты, журнал; ручной возврат (п. 4.10.2, 4.10.3 ТЗ). */-->
+<head th:replace="~{fragments/layout :: head(${'Заказ № ' + order.number})}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('payments')}"></aside>
+    <main class="admin-main">
+        <link rel="stylesheet" th:href="@{/css/admin.css}">
+        <div th:replace="~{admin/parts :: top(${'Заказ № ' + order.number}, ${order.title + ' · ' + order.venueName})}"></div>
+        <div th:replace="~{admin/parts :: messages}"></div>
+
+        <div class="admin-order">
+            <section class="card">
+                <dl class="admin-facts">
+                    <div><dt>Состояние</dt><dd><span th:text="${order.statusTitle}"></span>
+                        <small class="muted" th:if="${order.cancelReason != null}" th:text="' — ' + ${order.cancelReasonTitle}"></small></dd></div>
+                    <div><dt>Возврат</dt><dd><span class="badge" th:if="${order.refundStatus != 'NONE'}" th:classappend="${order.refundCss}" th:text="${order.refundTitle}"></span>
+                        <span th:if="${order.refundStatus == 'NONE'}">—</span></dd></div>
+                    <div><dt>Покупатель</dt><dd><span th:text="${order.buyerName}"></span><br><small class="muted" th:text="${order.buyerEmail}"></small></dd></div>
+                    <div><dt>Сумма</dt><dd><span th:text="${order.amount} + ' сом'"></span> · <span th:text="${order.quantity}"></span> порц.</dd></div>
+                    <div><dt>Заведение</dt><dd><span th:text="${order.venueName}"></span><br><small class="muted" th:text="${order.address}"></small></dd></div>
+                    <div><dt>Окно выдачи</dt><dd th:text="${order.pickupText}"></dd></div>
+                    <div><dt>Создан</dt><dd th:text="${order.createdText}"></dd></div>
+                    <div><dt>Оплачен</dt><dd th:text="${order.paidText}"></dd></div>
+                    <div th:if="${order.issuedAt != null}"><dt>Выдан</dt><dd th:text="${order.issuedText}"></dd></div>
+                    <div th:if="${order.cancelledAt != null}"><dt>Отменён</dt><dd><span th:text="${order.cancelledText}"></span>
+                        <br><small class="muted" th:if="${order.cancelComment != null}" th:text="${order.cancelComment}"></small></dd></div>
+                </dl>
+            </section>
+
+            <section class="card admin-refund-form">
+                <h2 class="card-title-sm">Ручной возврат</h2>
+                <th:block th:if="${order.paid or canRefund}">
+                    <p class="muted text-sm" th:if="${order.paid}">Заказ ещё не выдан: он будет <b>отменён</b>, код получения перестанет действовать,
+                        деньги вернутся покупателю.</p>
+                    <p class="muted text-sm" th:unless="${order.paid}">Вернуть деньги по успешным платежам, по которым возврата ещё не было
+                        или он не удался.</p>
+                    <form method="post" th:action="@{/admin/orders/{id}/refund(id=${order.id})}" class="admin-refund-form">
+                        <label class="field">
+                            <span class="field-label">Причина <span class="required">*</span></span>
+                            <textarea class="textarea" name="reason" required maxlength="255"
+                                      placeholder="Например: жалоба покупателя, заведение не выдало заказ"></textarea>
+                        </label>
+                        <button type="submit" class="btn btn-primary"
+                                th:text="${order.paid} ? 'Отменить заказ и вернуть ' + ${order.amount} + ' сом' : 'Вернуть деньги'">Вернуть деньги</button>
+                    </form>
+                </th:block>
+                <form method="post" th:if="${hasPending}" th:action="@{/admin/orders/{id}/refund/retry(id=${order.id})}">
+                    <p class="muted text-sm">Возврат ждёт ответа платёжной службы — система повторяет его сама, можно повторить сейчас.</p>
+                    <button type="submit" class="btn btn-soft"><span class="material-symbols-outlined icon-sm">replay</span>Повторить сейчас</button>
+                </form>
+                <p class="muted text-sm" th:if="${!order.paid and !canRefund and !hasPending}">Возвращать нечего:
+                    успешных платежей без возврата нет.</p>
+            </section>
+        </div>
+
+        <section class="admin-section">
+            <h2>Платежи</h2>
+            <div class="table-card admin-table">
+                <table class="table">
+                    <thead><tr><th>Время</th><th>Сумма</th><th>Результат</th><th>Карта</th><th>Комментарий</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${payments.isEmpty()}"><td colspan="5" class="table-empty">Оплату не начинали</td></tr>
+                    <tr th:each="p : ${payments}">
+                        <td class="num" th:text="${p.createdText}"></td>
+                        <td class="num" th:text="${p.amount} + ' сом'"></td>
+                        <td><span class="badge" th:classappend="${p.statusCss}" th:text="${p.statusTitle}"></span></td>
+                        <td th:text="${p.cardLast4 != null} ? '•••• ' + ${p.cardLast4} : '—'"></td>
+                        <td><span class="err" th:if="${p.errorMessage != null}" th:text="${p.errorMessage}"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="admin-section">
+            <h2>Возвраты</h2>
+            <div class="table-card admin-table">
+                <table class="table">
+                    <thead><tr><th>Оформлен</th><th>Сумма</th><th>Состояние</th><th>Кто</th><th>Причина</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${refunds.isEmpty()}"><td colspan="5" class="table-empty">Возвратов не было</td></tr>
+                    <tr th:each="f : ${refunds}">
+                        <td class="num" th:text="${f.createdText}"></td>
+                        <td class="num" th:text="${f.amount} + ' сом'"></td>
+                        <td><span class="badge" th:classappend="${f.statusCss}" th:text="${f.statusTitle}"></span>
+                            <span class="err" th:if="${f.errorMessage != null}" th:text="${f.errorMessage} + ' (попыток: ' + ${f.attempts} + ')'"></span></td>
+                        <td><span th:text="${f.initiatedTitle}"></span><small th:if="${f.adminName != null}" th:text="${f.adminName}"></small></td>
+                        <td th:text="${f.reason}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="admin-section">
+            <h2>Журнал заказа</h2>
+            <p class="muted" th:if="${events.isEmpty()}">Событий нет.</p>
+            <ul class="admin-events" th:unless="${events.isEmpty()}">
+                <li th:each="e : ${events}">
+                    <time th:text="${e.createdText}"></time>
+                    <span class="badge" th:classappend="${e.css}" th:text="${e.eventType}"></span>
+                    <span><span th:text="${e.details}"></span><small class="muted" th:if="${e.userName != null}" th:text="' — ' + ${e.userName}"></small></span>
+                </li>
+            </ul>
+        </section>
+    </main>
+</div>
+</body>
+</html>

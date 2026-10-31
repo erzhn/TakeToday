@@ -72,6 +72,21 @@
 .order-actions p { margin-right: auto; }
 
 .order-late { display: grid; gap: 14px; justify-items: start; }
+.order-hero-icon.is-muted { background: #eceef0; color: #5f6368; }
+
+/* Этап 5: отмена заказа */
+.order-notice { display: flex; gap: 10px; align-items: flex-start; padding: 14px 16px; border-radius: var(--radius); }
+.order-notice.is-ok { background: var(--primary-soft); color: var(--on-primary-container); }
+.order-notice.is-error { background: var(--error-soft); color: #8c1d18; }
+.order-cancel { padding-top: 18px; padding-bottom: 18px; }
+.order-cancel-details summary {
+    display: inline-flex; align-items: center; gap: 6px; cursor: pointer; list-style: none;
+    font-family: var(--font-heading); font-weight: 700; color: var(--error);
+}
+.order-cancel-details summary::-webkit-details-marker { display: none; }
+.order-cancel-details[open] { display: grid; gap: 12px; }
+.order-cancel-details p { line-height: 1.55; }
+.order-cancel p.muted { display: flex; gap: 6px; align-items: center; }
 .order-late h1 { font-size: 26px; }
 .order-late p { line-height: 1.6; }
 

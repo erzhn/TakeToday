@@ -69,6 +69,8 @@
 .pickup-facts dt { font-size: 12px; color: var(--muted); }
 .pickup-facts dd { margin: 2px 0 0; font-weight: 600; }
 .pickup-cash-note { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
+.pickup-cannot summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+.pickup-cannot-form { display: grid; gap: 12px; margin-top: 12px; padding: 14px; border-radius: var(--radius); background: var(--surface-2); }
 .pickup-empty { display: grid; justify-items: center; gap: 8px; text-align: center; padding: 40px 16px; }
 .pickup-empty .material-symbols-outlined { font-size: 48px; color: var(--outline); }
 .pickup-empty h2 { font-size: 20px; }

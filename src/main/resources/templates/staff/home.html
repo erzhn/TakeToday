@@ -163,6 +163,9 @@
                                     <span class="badge badge-soft" th:text="${o.foodTypeTitle}">Выпечка</span>
                                     <span class="badge" th:classappend="${o.state.css}" th:text="${o.state.title}">Активно</span>
                                 </div>
+                                <!--/* Этап 5: причина скрытия администратором */-->
+                                <div class="offer-sub" style="color: var(--error)" th:if="${hiddenReasons[o.id] != null}"
+                                     th:text="'Причина: ' + ${hiddenReasons[o.id]}">Причина</div>
                             </div>
                         </div>
                     </td>

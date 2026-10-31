@@ -1,0 +1,59 @@
+/* Этап 5 (Эржан): админ-панель — таблицы, фильтры, действия. Основа — .table, .stats из app.css. */
+.admin-main, .admin-sidebar { min-width: 0; }  /* иначе на телефоне меню растягивает страницу вширь */
+.admin-alert { display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; margin-bottom: 20px; border-radius: var(--radius); }
+.admin-alert.is-ok { background: var(--primary-soft); color: var(--on-primary-container); }
+.admin-alert.is-error { background: var(--error-soft); color: #8c1d18; }
+.admin-alert.is-warning { background: var(--warning-soft); color: #6b3a06; }
+
+.admin-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+.admin-filters .input { flex: 1 1 260px; height: 42px; }
+.admin-filters .select { width: auto; height: 42px; }
+.admin-filters .btn { height: 42px; }
+.admin-count { margin-left: auto; font-size: 13px; color: var(--muted); }
+
+.admin-table { overflow-x: auto; }
+.admin-table .table { min-width: 860px; }
+.admin-table td { font-size: 14px; vertical-align: top; }
+.admin-table td .muted, .admin-table td small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.admin-table .num { font-family: var(--font-num); white-space: nowrap; }
+.admin-table tr.is-blocked td { background: #fff7f6; }
+.admin-table .err { color: var(--error); font-size: 12px; display: block; margin-top: 2px; }
+
+/* Действие с обязательной причиной: раскрывается по нажатию */
+.admin-action summary { cursor: pointer; list-style: none; font-weight: 600; font-size: 13px; white-space: nowrap; }
+.admin-action summary::-webkit-details-marker { display: none; }
+.admin-action summary.is-danger { color: var(--error); }
+.admin-action[open] summary { margin-bottom: 8px; }
+.admin-action form { display: grid; gap: 8px; min-width: 220px; }
+.admin-action .input { height: 38px; font-size: 13px; }
+.admin-inline { display: inline; }
+
+.admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 28px; }
+.admin-grid .stat-value { font-size: 28px; }
+.admin-grid .stat-caption a { font-weight: 600; }
+.stat.is-alert { box-shadow: inset 0 0 0 2px var(--error-soft), var(--shadow-card); }
+
+.admin-section { margin-top: 28px; }
+.admin-section > h2 { font-size: 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+.admin-events { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.admin-events li {
+    display: grid; grid-template-columns: 120px 170px 1fr; gap: 12px; align-items: start;
+    padding: 10px 14px; background: var(--surface); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); font-size: 13px;
+}
+.admin-events time { color: var(--muted); font-family: var(--font-num); }
+.admin-events .badge { justify-self: start; font-size: 11px; }
+
+/* Карточка заказа */
+.admin-order { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); gap: 24px; align-items: start; }
+.admin-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.admin-facts > div { padding: 12px; border-radius: var(--radius-sm); background: var(--surface-2); }
+.admin-facts dt { font-size: 12px; color: var(--muted); }
+.admin-facts dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.admin-refund-form { display: grid; gap: 12px; }
+.admin-refund-form textarea { min-height: 80px; }
+
+@media (max-width: 960px) {
+    .admin-order { grid-template-columns: 1fr; }
+    .admin-events li { grid-template-columns: 1fr; gap: 4px; }
+}

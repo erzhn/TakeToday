@@ -30,6 +30,11 @@
         }, 5000);
     }
 
+    // ---- Этап 5: защита от двойного нажатия «Отменить» (сервер всё равно не отменит и не вернёт дважды)
+    document.querySelectorAll('[data-cancel-form]').forEach(f => f.addEventListener('submit', () => {
+        setTimeout(() => f.querySelectorAll('button').forEach(b => { b.disabled = true; }), 0);
+    }));
+
     // ---- «Осталось 1 ч 45 мин до начала выдачи»
     const countdown = document.querySelector('[data-pickup-countdown]');
     if (countdown) {

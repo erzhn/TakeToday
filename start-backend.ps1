@@ -2,7 +2,7 @@
 # Файл сохранён в UTF-8 с BOM: иначе Windows PowerShell 5 читает русский текст в неправильной кодировке.
 Set-Location -LiteralPath $PSScriptRoot
 $allowed = @('DB_URL','DB_USER','DB_PASSWORD','PORT','FRONTEND_ORIGIN','ADMIN_EMAIL','ADMIN_PASSWORD','UPLOAD_DIR',
-             'MAIL_USERNAME','MAIL_PASSWORD','SPRING_MAIL_HOST','SPRING_MAIL_PORT',
+             'MAIL_USERNAME','MAIL_PASSWORD','SPRING_MAIL_HOST','SPRING_MAIL_PORT','PAYMENT_MOCK_AVAILABLE','PAYMENT_MOCK_REFUNDS_AVAILABLE',
              'SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH','SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE')
 if (Test-Path -LiteralPath '.env') {
     foreach ($line in Get-Content -LiteralPath '.env' -Encoding UTF8) {

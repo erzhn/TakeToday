@@ -10,7 +10,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.taketoday.refund.RefundService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
+
+import java.time.Clock;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -21,10 +26,15 @@ public class OrderController {
 
     private final PaymentService payments;
     private final CustomerGuard guard;
+    private final RefundService refunds;
+    private final Clock clock;
 
-    public OrderController(PaymentService payments, CustomerGuard guard) {
+    public OrderController(PaymentService payments, CustomerGuard guard, RefundService refunds,
+                           @Qualifier("reservationClock") Clock clock) {
         this.payments = payments;
         this.guard = guard;
+        this.refunds = refunds;
+        this.clock = clock;
     }
 
     /** «Перейти к оплате»: создаём попытку оплаты и отправляем покупателя на страницу платёжной службы. */
@@ -42,13 +52,17 @@ public class OrderController {
     @GetMapping("/orders/{id}")
     public String order(@PathVariable UUID id, Model model, HttpServletResponse response) {
         PaymentOrder order = payments.order(id, guard.customerId());
-        if (!order.isPaid() && !order.isIssued() && !order.isLatePayment()) {
+        if (!order.hasOrderPage()) {
             // Ещё не оплачен или бронь просто истекла — это показывает страница брони Жаныбека
             return "redirect:/reservations/" + id;
         }
+        Instant now = clock.instant();
         response.setHeader("Cache-Control", "no-store"); // код получения не должен оставаться в кэше
         model.addAttribute("order", order);
-        model.addAttribute("payment", payments.lastPayment(id).orElse(null));
+        model.addAttribute("payment", payments.paymentForReceipt(id).orElse(null));
+        model.addAttribute("refunds", refunds.forOrder(id));
+        model.addAttribute("canCancel", order.canCancel(now));
+        model.addAttribute("pickupOver", order.isPickupOver(now));
         return "orders/detail";
     }
 
@@ -56,7 +70,7 @@ public class OrderController {
     @GetMapping("/orders/{id}/qr.png")
     public ResponseEntity<byte[]> qr(@PathVariable UUID id) {
         PaymentOrder order = payments.order(id, guard.customerId());
-        if (!order.isPaid()) {
+        if (!order.isPaid() || order.isPickupOver(clock.instant())) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok()

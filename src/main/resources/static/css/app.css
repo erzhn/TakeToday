@@ -749,6 +749,11 @@ img { max-width: 100%; display: block; }
 }
 .admin-sidebar nav a:hover, .admin-sidebar nav button:hover { background: rgba(255, 255, 255, .1); text-decoration: none; }
 .admin-sidebar nav a.active { background: rgba(255, 255, 255, .16); color: #fff; }
+/* Иконки в меню: правило «.admin-sidebar nav span» выше иначе перебивает шрифт иконок и растягивает их */
+.admin-sidebar nav .material-symbols-outlined {
+    font-family: "Material Symbols Outlined"; font-weight: normal; font-size: 20px;
+    display: inline-block; width: 1em; padding: 0; flex: 0 0 auto;
+}
 .admin-sidebar nav span.disabled { opacity: .5; cursor: default; }
 .admin-sidebar .soon { margin-left: auto; font-family: var(--font); font-weight: 400; font-size: 10px; opacity: .8; }
 .admin-main { padding: 32px 40px; }

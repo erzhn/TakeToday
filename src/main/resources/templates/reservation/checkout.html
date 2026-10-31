@@ -39,6 +39,10 @@
                         <span class="material-symbols-outlined icon-sm">arrow_forward</span>
                     </button>
                 </form>
+                <!--/* Этап 5: покупатель передумал — порции сразу возвращаются в продажу */-->
+                <form method="post" th:action="@{/reservations/{id}/cancel(id=${order.id})}" class="reservation-cancel">
+                    <button type="submit" class="link-button">Отменить бронь и уступить порцию</button>
+                </form>
                 <p class="reservation-payment-note">
                     <span class="material-symbols-outlined icon-sm">shield</span>
                     Оплата на защищённой странице платёжной службы. Номер карты не хранится на сервере TakeToday.

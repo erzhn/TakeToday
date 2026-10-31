@@ -61,12 +61,13 @@ class AccessByRoleTests extends Stage1TestSupport {
     }
 
     @Test
-    void futureSectionsShowComingSoonInsteadOf404() throws Exception {
+    void allSectionsFromMenuOpen() throws Exception {
+        // Все разделы из меню уже сделаны (этапы 4–5), заглушек «Раздел появится» не осталось
         UUID buyer = account("buyer@example.com", "Айбек", "CUSTOMER");
         UUID staff = staffWithVenue("staff@example.com", "Пекарня");
         mvc.perform(get("/orders").with(as(buyer)))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Раздел появится на")));
+                .andExpect(content().string(containsString("Мои заказы")));
         mvc.perform(get("/staff/pickup").with(as(staff))).andExpect(status().isOk());
         mvc.perform(get("/staff/orders").with(as(staff))).andExpect(status().isOk());
         mvc.perform(get("/staff/pickup").with(as(buyer))).andExpect(status().isForbidden());

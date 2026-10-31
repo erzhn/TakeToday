@@ -115,4 +115,12 @@ public class StaffOfferRepository {
     private static Timestamp ts(Instant instant) {
         return Timestamp.from(instant);
     }
+
+    /** Этап 5: причины скрытия администратором (id предложения → причина). */
+    public java.util.Map<UUID, String> hiddenReasons(UUID establishmentId) {
+        java.util.Map<UUID, String> reasons = new java.util.HashMap<>();
+        db.query("SELECT id, hidden_reason FROM offers WHERE establishment_id = ? AND status = 'HIDDEN' AND hidden_reason IS NOT NULL",
+                rs -> { reasons.put(rs.getObject(1, UUID.class), rs.getString(2)); }, establishmentId);
+        return reasons;
+    }
 }

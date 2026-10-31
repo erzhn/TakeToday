@@ -81,3 +81,5 @@ app:
   payment:
     mock:
       available: ${PAYMENT_MOCK_AVAILABLE:true}
+      # Этап 5: false — служба «не отвечает» на возвраты (3 попытки, потом ручной возврат администратором)
+      refunds-available: ${PAYMENT_MOCK_REFUNDS_AVAILABLE:true}

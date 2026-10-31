@@ -169,11 +169,18 @@
         <a th:href="@{/admin}" th:classappend="${active == 'overview'} ? 'active'">
             <span class="material-symbols-outlined">dashboard</span>Обзор
         </a>
-        <span class="disabled"><span class="material-symbols-outlined">group</span>Пользователи<span class="soon">этап 5</span></span>
-        <span class="disabled"><span class="material-symbols-outlined">storefront</span>Заведения<span class="soon">этап 5</span></span>
-        <span class="disabled"><span class="material-symbols-outlined">inventory_2</span>Предложения<span class="soon">этап 5</span></span>
-        <span class="disabled"><span class="material-symbols-outlined">payments</span>Платежи<span class="soon">этап 5</span></span>
-        <span class="disabled"><span class="material-symbols-outlined">currency_exchange</span>Возвраты<span class="soon">этап 5</span></span>
+        <a th:href="@{/admin/users}" th:classappend="${active == 'users'} ? 'active'">
+            <span class="material-symbols-outlined">group</span>Пользователи</a>
+        <a th:href="@{/admin/venues}" th:classappend="${active == 'venues'} ? 'active'">
+            <span class="material-symbols-outlined">storefront</span>Заведения</a>
+        <a th:href="@{/admin/offers}" th:classappend="${active == 'offers'} ? 'active'">
+            <span class="material-symbols-outlined">inventory_2</span>Предложения</a>
+        <a th:href="@{/admin/payments}" th:classappend="${active == 'payments'} ? 'active'">
+            <span class="material-symbols-outlined">payments</span>Заказы и платежи</a>
+        <a th:href="@{/admin/refunds}" th:classappend="${active == 'refunds'} ? 'active'">
+            <span class="material-symbols-outlined">currency_exchange</span>Возвраты</a>
+        <a th:href="@{/admin/audit}" th:classappend="${active == 'audit'} ? 'active'">
+            <span class="material-symbols-outlined">history</span>Журнал событий</a>
         <a th:href="@{/profile}"><span class="material-symbols-outlined">person</span>Профиль</a>
         <form th:action="@{/api/auth/logout}" method="post" data-logout class="inline-form">
             <button type="submit"><span class="material-symbols-outlined">logout</span>Выйти</button>

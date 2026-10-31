@@ -1,43 +1,76 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* Админ-панель: обзор (экран 11). Цифры — AdminService.overview. */-->
 <head th:replace="~{fragments/layout :: head('Админ-панель')}"></head>
 <body>
 <div class="admin-shell">
     <aside th:replace="~{fragments/layout :: adminSidebar('overview')}"></aside>
-
     <main class="admin-main">
-        <div class="admin-top">
-            <div>
-                <h1 class="page-title">Обзор</h1>
-                <p class="page-subtitle">Разделы управления пользователями, предложениями и платежами появятся на этапе 5.</p>
+        <link rel="stylesheet" th:href="@{/css/admin.css}">
+        <div th:replace="~{admin/parts :: top('Обзор', 'Что происходит на сайте сегодня и что требует внимания')}"></div>
+        <div th:replace="~{admin/parts :: messages}"></div>
+
+        <div class="admin-grid">
+            <div class="stat">
+                <div class="stat-label">Всего пользователей</div>
+                <div class="stat-value" th:text="${stats.users}">0</div>
+                <div class="stat-caption"><span th:text="${stats.buyers}">0</span> покупателей · <span th:text="${stats.staff}">0</span> заведений
+                    <span th:if="${stats.blocked > 0}"> · <a th:href="@{/admin/users(role='BLOCKED')}"><span th:text="${stats.blocked}"></span> заблок.</a></span></div>
             </div>
-            <a th:href="@{/profile}" class="user-chip">
-                <span class="avatar" th:text="${headerInfo.initials}">А</span>
-                <span>
-                    <span class="user-chip-name" th:text="${headerInfo.shortName}">Администратор</span><br>
-                    <span class="user-chip-role">Администратор</span>
-                </span>
-            </a>
+            <div class="stat">
+                <div class="stat-label">Предложения в продаже</div>
+                <div class="stat-value" th:text="${stats.activeOffers}">0</div>
+                <div class="stat-caption">Заведений: <span th:text="${stats.venues}">0</span></div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Заказы сегодня</div>
+                <div class="stat-value" th:text="${stats.ordersToday}">0</div>
+                <div class="stat-caption">Оплачено <span th:text="${stats.paidToday}">0</span> · выдано <span th:text="${stats.issuedToday}">0</span></div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Выручка сегодня</div>
+                <div class="stat-value accent"><span th:text="${#numbers.formatInteger(stats.revenueToday, 1, 'WHITESPACE')}">0</span> <small>сом</small></div>
+                <div class="stat-caption">Возвращено сегодня: <span th:text="${stats.refundedToday}">0</span> сом</div>
+            </div>
+            <div class="stat" th:classappend="${stats.refundsFailed > 0} ? 'is-alert'">
+                <div class="stat-label">Возвраты</div>
+                <div class="stat-value"><span th:text="${stats.refundsFailed}">0</span> <small>требуют ручного</small></div>
+                <div class="stat-caption">В обработке: <span th:text="${stats.refundsPending}">0</span> ·
+                    <a th:href="@{/admin/refunds}">все возвраты</a></div>
+            </div>
         </div>
 
-        <div class="stats">
-            <div class="stat">
-                <div class="stat-label"><span class="material-symbols-outlined icon-sm">group</span>Всего пользователей</div>
-                <div class="stat-value" th:text="${usersTotal}">0</div>
+        <section class="admin-section" th:unless="${manual.isEmpty()}">
+            <h2><span class="material-symbols-outlined">warning</span>Нужен ручной возврат</h2>
+            <div class="table-card admin-table">
+                <table class="table">
+                    <thead><tr><th>Заказ</th><th>Покупатель</th><th>Сумма</th><th>Ошибка</th><th></th></tr></thead>
+                    <tbody>
+                    <tr th:each="f : ${manual}">
+                        <td><a th:href="@{/admin/orders/{id}(id=${f.orderId})}" th:text="'№ ' + ${f.number}"></a><small th:text="${f.title}"></small></td>
+                        <td th:text="${f.buyerName}"></td>
+                        <td class="num" th:text="${f.amount} + ' сом'"></td>
+                        <td><span class="err" th:text="${f.errorMessage}"></span><small th:text="${f.createdText}"></small></td>
+                        <td><a class="btn btn-primary btn-sm" th:href="@{/admin/orders/{id}(id=${f.orderId})}">Вернуть вручную</a></td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="stat">
-                <div class="stat-label"><span class="material-symbols-outlined icon-sm">person</span>Покупателей</div>
-                <div class="stat-value" th:text="${buyersTotal}">0</div>
-            </div>
-            <div class="stat">
-                <div class="stat-label"><span class="material-symbols-outlined icon-sm">storefront</span>Сотрудников заведений</div>
-                <div class="stat-value" th:text="${staffTotal}">0</div>
-            </div>
-            <div class="stat">
-                <div class="stat-label"><span class="material-symbols-outlined icon-sm">store</span>Заведений</div>
-                <div class="stat-value accent" th:text="${venuesTotal}">0</div>
-            </div>
-        </div>
+        </section>
+
+        <section class="admin-section">
+            <h2><span class="material-symbols-outlined">history</span>Последние события</h2>
+            <p class="muted" th:if="${events.isEmpty()}">Событий пока нет.</p>
+            <ul class="admin-events" th:unless="${events.isEmpty()}">
+                <li th:each="e : ${events}">
+                    <time th:text="${e.createdText}"></time>
+                    <span class="badge" th:classappend="${e.css}" th:text="${e.eventType}"></span>
+                    <span><span th:text="${e.details}"></span>
+                        <a th:if="${e.orderId != null}" th:href="@{/admin/orders/{id}(id=${e.orderId})}" th:text="' · № ' + ${e.number}"></a></span>
+                </li>
+            </ul>
+            <p><a th:href="@{/admin/audit}">Весь журнал →</a></p>
+        </section>
     </main>
 </div>
 </body>

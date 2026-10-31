@@ -32,6 +32,8 @@ public abstract class PaymentTestSupport extends Stage1TestSupport {
     protected UUID otherCustomer;
     protected UUID staff;
     protected UUID offer;
+    /** Начало выдачи набора: завтра в 19:00 по Бишкеку. */
+    protected Instant pickupStart;
 
     @BeforeEach
     protected void prepareOffer() {
@@ -43,6 +45,7 @@ public abstract class PaymentTestSupport extends Stage1TestSupport {
         UUID venue = (UUID) venueOf(staff).get("id");
         offer = UUID.randomUUID();
         Instant start = LocalDate.now(AppTime.ZONE).plusDays(1).atTime(19, 0).atZone(AppTime.ZONE).toInstant();
+        pickupStart = start;
         db.update("""
                         INSERT INTO offers (id, establishment_id, title, composition, food_type, photo_path, regular_price,
                                             discount_price, total_portions, pickup_start, pickup_end, status)

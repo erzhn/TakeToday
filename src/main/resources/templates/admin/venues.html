@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/* Админ-панель: заведения (п. 4.10.1 ТЗ). */-->
+<head th:replace="~{fragments/layout :: head('Заведения')}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('venues')}"></aside>
+    <main class="admin-main">
+        <link rel="stylesheet" th:href="@{/css/admin.css}">
+        <div th:replace="~{admin/parts :: top('Заведения', 'Партнёры TakeToday: предложения, продажи и состояние учётной записи владельца')}"></div>
+        <div th:replace="~{admin/parts :: messages}"></div>
+
+        <form class="admin-filters" method="get" th:action="@{/admin/venues}" role="search">
+            <input class="input" type="search" name="q" th:value="${q}" placeholder="Название, адрес или почта владельца" aria-label="Поиск">
+            <button class="btn btn-soft" type="submit"><span class="material-symbols-outlined icon-sm">search</span>Найти</button>
+            <span class="admin-count">Показано: <span th:text="${venues.size()}">0</span></span>
+        </form>
+
+        <div class="table-card admin-table">
+            <table class="table">
+                <thead><tr><th>Заведение</th><th>Владелец</th><th>Предложения</th><th>Заказы</th><th>Выручка</th><th></th></tr></thead>
+                <tbody>
+                <tr th:if="${venues.isEmpty()}"><td colspan="6" class="table-empty">Заведений не нашли</td></tr>
+                <tr th:each="v : ${venues}" th:classappend="${v.ownerBlocked} ? 'is-blocked'">
+                    <td><b th:text="${v.name}">Пекарня</b><small th:text="${v.address}"></small><small th:text="${v.contact}"></small></td>
+                    <td><span th:text="${v.ownerName}"></span><small th:text="${v.ownerEmail}"></small>
+                        <span class="badge badge-red" th:if="${v.ownerBlocked}">Заблокирован</span></td>
+                    <td class="num"><span th:text="${v.activeOffers}">0</span> в продаже<small th:text="'всего ' + ${v.totalOffers}"></small></td>
+                    <td class="num" th:text="${v.paidOrders}">0</td>
+                    <td class="num" th:text="${#numbers.formatInteger(v.revenue, 1, 'WHITESPACE')} + ' сом'">0 сом</td>
+                    <td>
+                        <a class="btn btn-soft btn-sm" th:href="@{/admin/offers(q=${v.name})}">Предложения</a>
+                        <a class="btn btn-soft btn-sm" th:href="@{/admin/users(q=${v.ownerEmail})}">Владелец</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+</body>
+</html>

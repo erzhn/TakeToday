@@ -16,6 +16,15 @@ public interface PaymentGateway {
      */
     Checkout start(UUID paymentId, int amount, String description);
 
+    /**
+     * Возврат денег по платежу (этап 5).
+     *
+     * @return номер возврата у платёжной службы
+     * @throws PaymentUnavailableException служба не ответила — можно повторить позже
+     * @throws RefundDeclinedException     служба отказала — повторять бессмысленно, нужен администратор
+     */
+    String refund(String providerPaymentId, int amount, String reason);
+
     record Checkout(String providerPaymentId, String redirectUrl) {
     }
 }
