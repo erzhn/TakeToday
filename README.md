@@ -84,7 +84,9 @@
 
 **Резервные копии (п. 5.3.1)** — `docs/backup.md`: `.\scripts\backup.ps1` (база + фото), `.\scripts\restore.ps1 -File …`.
 
-Миграция `V11__refunds_and_admin.sql`. Проверки: `.\mvnw.cmd "-Dtest=CancelAndRefundTests,RefundRetryTests,AdminPanelTests" test`.
+**Исправления после проверки:** «Оплачено сегодня» — одна сумма (количество заказов — подписью) и считает также заказы на сегодня, оплаченные накануне; у «Ожидают выдачи» — время выдачи ближайшего заказа, а не часы работы; «Как это работает» — отдельная страница `/how` с общей шапкой (меню больше не «прыгает»); у главной та же шапка, что у остальных страниц; «Повторить» убирает прошедшее предложение в архив; письмо «Заказ отменён» — только по оплаченным заказам.
+
+Миграции `V11__refunds_and_admin.sql`, `V12__offer_archive.sql`. Проверки: `.\mvnw.cmd "-Dtest=CancelAndRefundTests,RefundRetryTests,AdminPanelTests,InterfaceFixesTests" test`.
 
 ## Каталог и база предложений
 

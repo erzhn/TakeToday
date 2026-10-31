@@ -77,7 +77,7 @@
 
         <nav class="nav header-nav" aria-label="Основное меню">
             <a th:href="@{/catalog}" class="nav-link" th:classappend="${active == 'catalog'} ? 'active'">Каталог предложений</a>
-            <a href="/#home" class="nav-link" th:classappend="${active == 'how'} ? 'active'">Как это работает</a>
+            <a th:href="@{/how}" class="nav-link" th:classappend="${active == 'how'} ? 'active'">Как это работает</a>
             <a th:if="${headerInfo != null and headerInfo.customer}"
                th:href="@{/orders}" class="nav-link" th:classappend="${active == 'orders' or active == 'profile'} ? 'active'">Мои заказы</a>
             <a th:if="${headerInfo != null and headerInfo.admin}"
@@ -141,7 +141,7 @@
             <div>© 2026 TakeToday, Бишкек. Все права защищены.</div>
         </div>
         <nav class="footer-links" aria-label="Ссылки в подвале">
-            <a href="/#home">Как это работает</a>
+            <a th:href="@{/how}">Как это работает</a>
             <a href="mailto:partners@taketoday.kg">Заведениям и пекарням</a>
             <a href="mailto:support@taketoday.kg">Контакты</a>
         </nav>
@@ -157,7 +157,7 @@
         </div>
         <nav class="footer-links" aria-label="Ссылки в подвале">
             <a href="mailto:partners@taketoday.kg">Поддержка партнёров</a>
-            <a href="/#home">Как это работает</a>
+            <a th:href="@{/how}">Как это работает</a>
         </nav>
     </div>
 </footer>

@@ -19,7 +19,6 @@
 .brand-sub { display: block; font-size: 12px; color: var(--muted); line-height: 1.2; }
 .btn-back { background: var(--primary-soft); color: var(--primary); }
 .btn-back:hover { background: var(--primary-container); }
-#nav { gap: 6px; }
 
 /* ---------- Сообщение над формой ---------- */
 .auth-notice {
@@ -163,6 +162,7 @@ body.is-auth .site-footer { display: none; }
 .account-card .identity { display: flex; align-items: center; gap: 14px; }
 .account-card .identity-name { font-family: var(--font-heading); font-weight: 700; font-size: 18px; }
 .account-card .identity-meta { color: var(--muted); font-size: 13px; margin: 2px 0 4px; }
+.account-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
 /* ---------- Телефон ---------- */
 @media (max-width: 900px) {
@@ -178,5 +178,4 @@ body.is-auth .site-footer { display: none; }
     .brand-text .logo { font-size: 20px; }
     .brand-mark { width: 34px; height: 34px; }
     .hero-actions .btn { width: 100%; }
-    #nav .btn-primary { padding: 0 12px; }
 }

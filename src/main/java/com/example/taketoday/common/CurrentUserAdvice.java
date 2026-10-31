@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
         com.example.taketoday.catalog.CatalogController.class,
         com.example.taketoday.payment.OrderController.class,
         com.example.taketoday.payment.mock.MockPaymentController.class,
-        com.example.taketoday.pickup.PickupController.class})
+        com.example.taketoday.pickup.PickupController.class,
+        HowItWorksController.class})
 public class CurrentUserAdvice {
 
     /** Через ObjectProvider: в тестах @WebMvcTest сервиса нет, и шапка тогда просто гостевая. */

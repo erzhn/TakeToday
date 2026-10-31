@@ -169,6 +169,9 @@ public class OfferService {
                 form.getFoodType(), photo, form.getRegularPrice(), form.getDiscountPrice(), form.getTotalPortions(),
                 0, 0, start(form), end(form), OfferStatus.ACTIVE, now, now, 0);
         offers.insert(offer);
+        if (form.getCopyFrom() != null) {
+            offers.archiveIfExpired(form.getCopyFrom(), venue.id(), now);
+        }
         return offer.id();
     }
 

@@ -1004,3 +1004,24 @@ img { max-width: 100%; display: block; }
     .photo-upload { flex-direction: column; align-items: flex-start; }
     .offer-actions .btn { width: 100%; }
 }
+
+/* ---------- «Как это работает» (/how) ---------- */
+.how-title { font-size: 22px; margin: 28px 0 14px; }
+.how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.how-grid .card + .card { margin-top: 0; }
+.how-card { display: grid; gap: 8px; align-content: start; }
+.how-card .how-icon {
+    width: 44px; height: 44px; border-radius: var(--radius);
+    background: var(--primary-soft); color: var(--primary);
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.how-num { font-family: var(--font-num); font-weight: 700; color: var(--outline); font-size: 13px; }
+.how-card h3 { font-size: 18px; }
+.how-card p { color: var(--muted); line-height: 1.6; }
+.how-rules { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 24px; }
+.how-rules > div { display: flex; gap: 10px; align-items: flex-start; }
+.how-rules .material-symbols-outlined { color: var(--primary); margin-top: 2px; }
+.how-rules p { line-height: 1.55; }
+@media (max-width: 900px) {
+    .how-grid, .how-rules { grid-template-columns: 1fr; }
+}

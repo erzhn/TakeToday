@@ -24,7 +24,7 @@
                     <td data-label="Сумма" th:text="${order.amount + ' сом'}">250 сом</td>
                     <td data-label="Статус"><span class="badge" th:classappend="${order.statusCss}" th:text="${order.statusText}">Оплачен</span></td>
                     <td data-label="Код"><span th:if="${order.paid}" class="code" th:text="${order.codeGroups}">676 889</span><span th:unless="${order.paid}" class="muted">После оплаты</span></td>
-                    <td><a th:if="${order.paid}" class="btn btn-secondary" th:href="@{/orders/{id}(id=${order.id})}">Открыть QR</a></td>
+                    <td><a th:if="${order.paid}" class="btn btn-soft btn-sm" th:href="@{/orders/{id}(id=${order.id})}">Открыть QR</a></td>
                 </tr>
                 </tbody>
             </table>
