@@ -43,3 +43,7 @@ uploads/
 
 # Резервные копии базы (scripts/backup.ps1)
 backups/
+
+# Сертификат и ключ для https (профиль prod)
+certs/
+*.p12

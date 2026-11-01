@@ -91,8 +91,9 @@ public final class OrderHistoryEntry {
     }
 
     private boolean isPickupExpired() {
-        return ("PAID".equals(status) || "AWAITING_PAYMENT".equals(status))
-                && !pickupEnd.isAfter(Instant.now());
+        // PICKUP_EXPIRED ставит фоновая задача (PickupExpiryJob); до её прохода смотрим на время
+        return "PICKUP_EXPIRED".equals(status)
+                || (("PAID".equals(status) || "AWAITING_PAYMENT".equals(status)) && !pickupEnd.isAfter(Instant.now()));
     }
 
     public boolean isRefundVisible() { return refundStatus != null && !"NONE".equals(refundStatus); }

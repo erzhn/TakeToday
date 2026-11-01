@@ -28,6 +28,8 @@ public record PaymentOrder(UUID id, UUID customerId, UUID offerId, String title,
     public boolean isIssued() { return "ISSUED".equals(status); }
     public boolean isAwaitingPayment() { return "AWAITING_PAYMENT".equals(status); }
     public boolean isCancelled() { return "CANCELLED".equals(status); }
+    /** Оплачен, но не забран до конца окна выдачи (ставит PickupExpiryJob). */
+    public boolean isPickupExpired() { return "PICKUP_EXPIRED".equals(status); }
     public boolean isLatePayment() { return "LATE_PAYMENT".equals(cancelReason); }
 
     /** Этап 5: отменил покупатель, заведение или администратор (не «бронь истекла»). */
@@ -37,7 +39,7 @@ public record PaymentOrder(UUID id, UUID customerId, UUID offerId, String title,
 
     /** Заказ показывается на странице /orders/{id}; остальное (бронь, истёкшая бронь) — на странице брони. */
     public boolean hasOrderPage() {
-        return isPaid() || isIssued() || isLatePayment() || isCancelledByPerson() || "PICKUP_EXPIRED".equals(status);
+        return isPaid() || isIssued() || isLatePayment() || isCancelledByPerson() || isPickupExpired();
     }
 
     /** Отменить оплаченный заказ покупатель может до начала выдачи (п. 4.6.4). */
@@ -47,7 +49,7 @@ public record PaymentOrder(UUID id, UUID customerId, UUID offerId, String title,
 
     /** Окно выдачи прошло, а заказ так и не забрали. */
     public boolean isPickupOver(Instant now) {
-        return "PICKUP_EXPIRED".equals(status) || (isPaid() && !now.isBefore(pickupEnd));
+        return isPickupExpired() || (isPaid() && !now.isBefore(pickupEnd));
     }
 
     public String getCancelledAtText() {

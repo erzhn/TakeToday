@@ -39,12 +39,14 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
-  # Отправка электронной почты через Gmail
+  # Отправка электронной почты через Gmail.
+  # Если MAIL_USERNAME не задан (и профиль не prod), письма не отправляются, а печатаются в консоль
+  # (ConsoleMailSender, SPEC раздел 11). start-backend.ps1 в этом случае направляет почту в локальный Mailpit.
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -67,7 +69,10 @@ server:
 # Настройки TakeToday
 app:
   # Почта, с которой отправляются письма
-  mail-from: ${MAIL_USERNAME}
+  mail-from: ${MAIL_USERNAME:noreply@taketoday.local}
+  mail:
+    # true — письма всегда печатаются в консоль, даже если MAIL_USERNAME задан. В профиле prod не действует
+    console: ${MAIL_CONSOLE:false}
 
   # Данные первого администратора
   admin-email: ${ADMIN_EMAIL:}
@@ -83,3 +88,34 @@ app:
       available: ${PAYMENT_MOCK_AVAILABLE:true}
       # Этап 5: false — служба «не отвечает» на возвраты (3 попытки, потом ручной возврат администратором)
       refunds-available: ${PAYMENT_MOCK_REFUNDS_AVAILABLE:true}
+
+---
+# Профиль prod — показ на защите: SPRING_PROFILES_ACTIVE=prod (п. 5.2.1 ТЗ, «Защита передачи данных»).
+# Сайт работает по https. Как получить сертификат и запустить — README, раздел «Запуск по https (профиль prod)».
+spring:
+  config:
+    activate:
+      on-profile: prod
+  thymeleaf:
+    cache: true
+  mail:
+    # Настоящая почта обязательна: без MAIL_USERNAME и MAIL_PASSWORD приложение не запустится
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+
+server:
+  port: ${PORT:8443}
+  ssl:
+    # false — https обеспечивает туннель (cloudflared / ngrok), приложение слушает обычный http
+    enabled: ${SSL_ENABLED:true}
+    key-store: ${SSL_KEY_STORE:file:certs/taketoday.p12}
+    key-store-password: ${SSL_KEY_STORE_PASSWORD:}
+    key-store-type: PKCS12
+    key-alias: ${SSL_KEY_ALIAS:taketoday}
+  servlet:
+    session:
+      cookie:
+        # Cookie сессии уходит только по https
+        secure: ${SESSION_COOKIE_SECURE:true}
+  # За туннелем https заканчивается на туннеле: приложение верит заголовку X-Forwarded-Proto от локального прокси
+  forward-headers-strategy: native

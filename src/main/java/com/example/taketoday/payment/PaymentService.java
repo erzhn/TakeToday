@@ -181,7 +181,7 @@ public class PaymentService {
 
             finishPayment(payment.id(), PaymentStatus.SUCCEEDED, cardLast4, null, now);
 
-            if (order.isPaid() || order.isIssued()) {
+            if (order.isPaid() || order.isIssued() || order.isPickupExpired()) {
                 db.update("UPDATE payments SET error_message = ? WHERE id = ?",
                         "Заказ уже был оплачен — эту сумму нужно вернуть", payment.id());
                 audit.log(AuditLog.LATE_PAYMENT, order.id(), payment.id(), order.customerId(),
@@ -232,7 +232,7 @@ public class PaymentService {
     }
 
     private static void requirePayable(PaymentOrder order) {
-        if (order.isPaid()) {
+        if (order.isPaid() || order.isIssued() || order.isPickupExpired()) {
             throw new PaymentException("Этот заказ уже оплачен.");
         }
         if (!order.isAwaitingPayment()) {
