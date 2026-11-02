@@ -52,6 +52,20 @@ class ProfilePageTests extends Stage1TestSupport {
     }
 
     @Test
+    void buyerCanEnableAndDisableTwoFactorInProfile() throws Exception {
+        mvc.perform(post("/profile").with(as(buyer)).with(csrf())
+                        .param("name", "Айбек Джумабаев")
+                        .param("twoFactorEnabled", "true"))
+                .andExpect(redirectedUrl("/profile"));
+        assertThat(accountRow(buyer).get("two_factor_enabled")).isEqualTo(true);
+
+        mvc.perform(post("/profile").with(as(buyer)).with(csrf())
+                        .param("name", "Айбек Джумабаев"))
+                .andExpect(redirectedUrl("/profile"));
+        assertThat(accountRow(buyer).get("two_factor_enabled")).isEqualTo(false);
+    }
+
+    @Test
     void wrongPhoneIsRejected() throws Exception {
         mvc.perform(post("/profile").with(as(buyer)).with(csrf())
                         .param("name", "Айбек")

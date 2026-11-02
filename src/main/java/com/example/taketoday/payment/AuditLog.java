@@ -20,6 +20,12 @@ public class AuditLog {
     public static final String PAYMENT_DUPLICATE = "PAYMENT_DUPLICATE";
     public static final String LATE_PAYMENT = "LATE_PAYMENT";
     public static final String PAYMENT_UNAVAILABLE = "PAYMENT_UNAVAILABLE";
+    public static final String CUSTOMER_CANCELLED = "CUSTOMER_CANCELLED";
+    public static final String ADMIN_ACCOUNT_BLOCKED = "ADMIN_ACCOUNT_BLOCKED";
+    public static final String ADMIN_ACCOUNT_UNBLOCKED = "ADMIN_ACCOUNT_UNBLOCKED";
+    public static final String ADMIN_OFFER_HIDDEN = "ADMIN_OFFER_HIDDEN";
+    public static final String ADMIN_OFFER_RESTORED = "ADMIN_OFFER_RESTORED";
+    public static final String ADMIN_REFUND_COMPLETED = "ADMIN_REFUND_COMPLETED";
     public static final String ERROR = "ERROR";
 
     private final JdbcTemplate db;

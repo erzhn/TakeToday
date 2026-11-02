@@ -49,6 +49,7 @@ class OrderHistoryPageTests extends Stage1TestSupport {
                 .andExpect(content().string(containsString("Заказ покупателя")))
                 .andExpect(content().string(containsString("676 889")))
                 .andExpect(content().string(containsString("Открыть QR")))
+                .andExpect(content().string(containsString("Ожидает выдачи")))
                 .andExpect(content().string(not(containsString("Чужой заказ"))));
     }
 
@@ -69,6 +70,7 @@ class OrderHistoryPageTests extends Stage1TestSupport {
         mvc.perform(get("/staff/orders").with(as(staff)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("buyer@example.com")))
+                .andExpect(content().string(containsString("Ожидает выдачи")))
                 .andExpect(content().string(not(containsString("other@example.com"))));
     }
 

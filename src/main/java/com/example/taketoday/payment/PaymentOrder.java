@@ -29,6 +29,9 @@ public record PaymentOrder(UUID id, UUID customerId, UUID offerId, String title,
     public boolean isAwaitingPayment() { return "AWAITING_PAYMENT".equals(status); }
     public boolean isCancelled() { return "CANCELLED".equals(status); }
     public boolean isLatePayment() { return "LATE_PAYMENT".equals(cancelReason); }
+    public boolean isCancellable() {
+        return (isAwaitingPayment() || isPaid()) && pickupEnd.isAfter(Instant.now());
+    }
 
     /** Бронь ещё действует и оплату можно начать. */
     public boolean canPay(Instant now) {

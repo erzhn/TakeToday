@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Пользователи')}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('users')}"></aside>
+    <main class="admin-main">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+        <div class="admin-top"><div><h1 class="page-title">Пользователи</h1><p class="page-subtitle">Блокировка аккаунтов за нарушение правил.</p></div></div>
+        <div class="table-card">
+            <table class="table">
+                <thead><tr><th>Пользователь</th><th>Роль</th><th>Подтверждён</th><th>Статус</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="user : ${users}">
+                    <td><strong th:text="${user.name()}">Имя</strong><br><span class="muted" th:text="${user.email()}">email</span></td>
+                    <td th:text="${user.role()}">CUSTOMER</td>
+                    <td th:text="${user.verified()} ? 'Да' : 'Нет'">Да</td>
+                    <td><span class="badge" th:classappend="${user.blocked() ? 'badge-soft-dark' : 'badge-green'}" th:text="${user.blocked() ? 'Заблокирован' : 'Активен'}">Активен</span></td>
+                    <td>
+                        <form th:if="${!user.blocked() and user.role() != 'ADMIN'}" th:action="@{/admin/users/{id}/block(id=${user.id()})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-sm btn-danger-outline" onclick="return confirm('Заблокировать аккаунт?')">Заблокировать</button>
+                        </form>
+                        <form th:if="${user.blocked()}" th:action="@{/admin/users/{id}/unblock(id=${user.id()})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-sm btn-secondary">Разблокировать</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+</body>
+</html>

@@ -39,6 +39,17 @@ public class OrderController {
         }
     }
 
+    @PostMapping("/orders/{id}/cancel")
+    public String cancel(@PathVariable UUID id, RedirectAttributes flash) {
+        try {
+            payments.cancel(id, guard.customerId());
+            flash.addFlashAttribute("success", "Заказ отменён. Возврат ожидает обработки.");
+        } catch (PaymentException e) {
+            flash.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/orders";
+    }
+
     @GetMapping("/orders/{id}")
     public String order(@PathVariable UUID id, Model model, HttpServletResponse response) {
         PaymentOrder order = payments.order(id, guard.customerId());

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Предложения')}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('offers')}"></aside>
+    <main class="admin-main">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+        <div class="admin-top"><div><h1 class="page-title">Предложения</h1><p class="page-subtitle">Проверка и скрытие наборов из каталога.</p></div></div>
+        <div class="table-card">
+            <table class="table">
+                <thead><tr><th>Набор</th><th>Заведение</th><th>Порции</th><th>Статус</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="offer : ${offers}">
+                    <td><strong th:text="${offer.title()}">Набор</strong><br><span class="muted" th:text="${offer.ownerEmail()}">email</span></td>
+                    <td th:text="${offer.establishmentName()}">Заведение</td>
+                    <td th:text="${offer.available() + ' доступно из ' + offer.totalPortions()}">0 доступно из 0</td>
+                    <td><span class="badge" th:classappend="${offer.status() == 'ACTIVE' ? 'badge-green' : 'badge-soft-dark'}" th:text="${offer.status() == 'ACTIVE' ? 'Активно' : (offer.status() == 'HIDDEN' ? 'Скрыто администратором' : 'Снято продавцом')}">Активно</span></td>
+                    <td>
+                        <form th:if="${offer.status() == 'ACTIVE'}" th:action="@{/admin/offers/{id}/hide(id=${offer.id()})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-sm btn-danger-outline" onclick="return confirm('Скрыть предложение?')">Скрыть</button>
+                        </form>
+                        <form th:if="${offer.status() == 'HIDDEN'}" th:action="@{/admin/offers/{id}/restore(id=${offer.id()})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-sm btn-secondary">Вернуть</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+</body>
+</html>

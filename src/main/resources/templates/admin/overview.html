@@ -9,7 +9,7 @@
         <div class="admin-top">
             <div>
                 <h1 class="page-title">Обзор</h1>
-                <p class="page-subtitle">Разделы управления пользователями, предложениями и платежами появятся на этапе 5.</p>
+                <p class="page-subtitle">Управление пользователями, предложениями, платежами и возвратами.</p>
             </div>
             <a th:href="@{/profile}" class="user-chip">
                 <span class="avatar" th:text="${headerInfo.initials}">А</span>
@@ -37,6 +37,25 @@
                 <div class="stat-label"><span class="material-symbols-outlined icon-sm">store</span>Заведений</div>
                 <div class="stat-value accent" th:text="${venuesTotal}">0</div>
             </div>
+            <div class="stat">
+                <div class="stat-label"><span class="material-symbols-outlined icon-sm">inventory_2</span>Активных предложений</div>
+                <div class="stat-value" th:text="${activeOffersTotal}">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label"><span class="material-symbols-outlined icon-sm">currency_exchange</span>Возвратов к обработке</div>
+                <div class="stat-value" th:text="${pendingRefundsTotal}">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label"><span class="material-symbols-outlined icon-sm">block</span>Заблокировано</div>
+                <div class="stat-value" th:text="${blockedTotal}">0</div>
+            </div>
+        </div>
+
+        <div class="page-actions" style="margin-top: 24px; display:flex; gap:12px; flex-wrap:wrap">
+            <a th:href="@{/admin/users}" class="btn btn-primary">Пользователи</a>
+            <a th:href="@{/admin/offers}" class="btn btn-secondary">Предложения</a>
+            <a th:href="@{/admin/payments}" class="btn btn-secondary">Платежи</a>
+            <a th:href="@{/admin/refunds}" class="btn btn-secondary">Возвраты</a>
         </div>
     </main>
 </div>

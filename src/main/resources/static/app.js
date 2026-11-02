@@ -296,12 +296,16 @@ function bindStrength() {
 
 function login() {
     authLayout('login', 'Вход в аккаунт',
-        'Войдите по почте и паролю — затем подтвердите вход кодом из письма.',
+        'Войдите по почте и паролю. Код из письма понадобится, если вы включили 2FA в профиле.',
         '<form class="form-grid" novalidate>' + emailField() +
         passwordField('Пароль', 'current-password', '<a class="field-meta auth-link" href="#recovery">Забыли пароль?</a>') +
-        submitButton('Получить код входа') + '</form>' +
+        submitButton('Войти') + '</form>' +
         '<p class="auth-switch">Нет аккаунта? <a href="#register">Зарегистрироваться</a></p>');
-    bindForm(async data => saveChallenge(await api('/auth/login', data), 'LOGIN'));
+    bindForm(async data => {
+        const result = await api('/auth/login', data);
+        if (result.challengeId) saveChallenge(result, 'LOGIN');
+        else { user = result; go('home'); }
+    });
 }
 
 function register() {

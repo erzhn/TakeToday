@@ -58,6 +58,9 @@ public final class OrderHistoryEntry {
     public int getAmount() { return amount; }
     public int getQuantity() { return quantity; }
     public boolean isPaid() { return "PAID".equals(status); }
+    public boolean isCancellable() {
+        return ("AWAITING_PAYMENT".equals(status) || isPaid()) && pickupEnd.isAfter(Instant.now());
+    }
     public boolean isCurrent() {
         return ("AWAITING_PAYMENT".equals(status) || isPaid())
                 && pickupEnd.isAfter(Instant.now());
@@ -75,8 +78,8 @@ public final class OrderHistoryEntry {
     public String getStatusText() {
         if (isPickupExpired()) return "Время получения истекло";
         if ("AWAITING_PAYMENT".equals(status)) return "Ожидает оплаты";
-        if ("PAID".equals(status)) return "Оплачен";
-        if ("RECEIVED".equals(status) || "ISSUED".equals(status) || "PICKED_UP".equals(status)) return "Получен";
+        if ("PAID".equals(status)) return "Ожидает выдачи";
+        if ("RECEIVED".equals(status) || "ISSUED".equals(status) || "PICKED_UP".equals(status)) return "Выдан";
         if ("RESERVATION_EXPIRED".equals(cancelReason)) return "Время получения истекло";
         return "Отменен";
     }

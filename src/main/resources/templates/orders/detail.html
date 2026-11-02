@@ -109,6 +109,9 @@
 
         <div class="order-actions">
             <p class="muted text-sm">Не передавайте код посторонним: по нему выдают ваш заказ.</p>
+            <form th:if="${order.cancellable}" th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post">
+                <button type="submit" class="btn btn-outline" onclick="return confirm('Отменить заказ? Деньги будут возвращены в порядке обработки возврата.')">Отменить заказ</button>
+            </form>
             <a th:href="@{/catalog}" class="btn btn-soft">В каталог</a>
             <a th:href="@{/orders}" class="btn btn-primary">Мои заказы</a>
         </div>

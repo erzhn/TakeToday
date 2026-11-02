@@ -15,9 +15,14 @@ public class ProfileForm {
     @Pattern(regexp = ValidationRules.PHONE_REGEX, message = ValidationRules.PHONE_MESSAGE)
     private String phone;
 
+    private boolean twoFactorEnabled;
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+
+    public boolean isTwoFactorEnabled() { return twoFactorEnabled; }
+    public void setTwoFactorEnabled(boolean twoFactorEnabled) { this.twoFactorEnabled = twoFactorEnabled; }
 }

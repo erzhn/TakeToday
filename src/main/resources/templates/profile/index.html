@@ -124,6 +124,16 @@
                         </button>
                         <a th:href="@{/profile}" class="btn btn-soft">Отменить</a>
                     </div>
+
+                    <div class="field note" style="margin-top: var(--space-2)">
+                        <label class="checkbox-label">
+                            <input type="checkbox" th:field="*{twoFactorEnabled}">
+                            <span>
+                                <strong>Включить подтверждение входа по коду</strong><br>
+                                <small>После включения при каждом входе дополнительно потребуется код из письма. Регистрация и восстановление пароля всегда подтверждаются кодом.</small>
+                            </span>
+                        </label>
+                    </div>
                 </form>
             </section>
 

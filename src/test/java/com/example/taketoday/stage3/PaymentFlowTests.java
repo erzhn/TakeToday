@@ -268,6 +268,40 @@ class PaymentFlowTests extends PaymentTestSupport {
         assertEquals(0, ((Number) offerRow().get("reserved_portions")).intValue(), "бронь не снята дважды");
     }
 
+    @Test
+    void buyerCanCancelPaidOrderAndReturnsPortionsForSale() throws Exception {
+        UUID id = reserve(2);
+        payByCard(startPayment(id), "4242424242424242");
+
+        mvc.perform(post("/orders/" + id + "/cancel").with(as(customer)).with(csrf()))
+                .andExpect(redirectedUrl("/orders"))
+                .andExpect(flash().attribute("success", containsString("отменён")));
+
+        assertEquals("CANCELLED", order(id).get("status"));
+        assertEquals("CUSTOMER", order(id).get("cancel_reason"));
+        assertEquals("PENDING", order(id).get("refund_status"));
+        assertNull(order(id).get("pickup_code"));
+        assertEquals(0, ((Number) offerRow().get("reserved_portions")).intValue());
+        assertEquals(0, ((Number) offerRow().get("sold_portions")).intValue());
+        assertEquals(1, count("SELECT COUNT(*) FROM audit_log WHERE order_id = ? AND event_type = 'CUSTOMER_CANCELLED'", id));
+    }
+
+    @Test
+    void buyerCanCancelUnpaidReservationAndCannotCancelItTwice() throws Exception {
+        UUID id = reserve(1);
+
+        mvc.perform(post("/orders/" + id + "/cancel").with(as(customer)).with(csrf()))
+                .andExpect(redirectedUrl("/orders"))
+                .andExpect(flash().attribute("success", containsString("отменён")));
+        assertEquals("CANCELLED", order(id).get("status"));
+        assertEquals("CUSTOMER", order(id).get("cancel_reason"));
+        assertEquals(0, ((Number) offerRow().get("reserved_portions")).intValue());
+
+        mvc.perform(post("/orders/" + id + "/cancel").with(as(customer)).with(csrf()))
+                .andExpect(redirectedUrl("/orders"))
+                .andExpect(flash().attribute("error", containsString("нельзя отменить")));
+    }
+
     // ---------- Доступ ----------
 
     @Test

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Платежи')}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('payments')}"></aside>
+    <main class="admin-main">
+        <div class="admin-top"><div><h1 class="page-title">Платежи</h1><p class="page-subtitle">Все попытки оплаты, суммы и результаты учебной платёжной службы.</p></div></div>
+        <div class="table-card">
+            <table class="table">
+                <thead><tr><th>Заказ</th><th>Покупатель</th><th>Заведение</th><th>Сумма</th><th>Результат</th><th>Карта</th></tr></thead>
+                <tbody>
+                <tr th:each="payment : ${payments}">
+                    <td><strong th:text="${payment.title()}">Набор</strong><br><span class="muted" th:text="${payment.providerPaymentId()}">payment</span></td>
+                    <td th:text="${payment.customerName() + ' (' + payment.customerEmail() + ')'}">Покупатель</td>
+                    <td th:text="${payment.establishmentName()}">Заведение</td>
+                    <td th:text="${payment.amount()} + ' сом'">0 сом</td>
+                    <td><span class="badge" th:classappend="${payment.status() == 'SUCCEEDED'} ? 'badge-green' : 'badge-soft-dark'" th:text="${payment.status()}">SUCCEEDED</span><br><span class="muted" th:if="${payment.errorMessage() != null}" th:text="${payment.errorMessage()}"></span></td>
+                    <td th:text="${payment.cardLast4() == null ? '—' : '*' + payment.cardLast4()}">*4242</td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="empty" th:if="${#lists.isEmpty(payments)}"><h2>Платежей пока нет</h2></div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

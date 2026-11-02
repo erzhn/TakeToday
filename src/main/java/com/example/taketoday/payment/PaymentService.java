@@ -85,6 +85,47 @@ public class PaymentService {
                         """, PAYMENT_MAPPER, providerPaymentId, customerId).stream().findFirst();
     }
 
+    /** Покупатель может отменить действующую бронь или оплаченный заказ до окончания окна выдачи. */
+    public void cancel(UUID orderId, UUID customerId) {
+        transactions.executeWithoutResult(tx -> {
+            PaymentOrder current = readOrder(orderId);
+            if (!customerId.equals(current.customerId())) {
+                throw new PaymentException("Заказ не найден.");
+            }
+            lockOffer(current.offerId());
+            PaymentOrder order = readOrder(orderId);
+            Instant now = clock.instant();
+
+            if (order.isAwaitingPayment()) {
+                if (!order.expiresAt().isAfter(now)) {
+                    releaseHold(order, now, "RESERVATION_EXPIRED");
+                    throw new PaymentException("Время на оплату истекло. Бронь уже отменена.");
+                }
+                releaseHold(order, now, "CUSTOMER");
+                audit.log(AuditLog.CUSTOMER_CANCELLED, order.id(), null, customerId,
+                        "Покупатель отменил бронь до оплаты");
+                return;
+            }
+
+            if (!order.isPaid() || !order.pickupEnd().isAfter(now)) {
+                throw new PaymentException("Этот заказ уже нельзя отменить.");
+            }
+            int changed = db.update("""
+                    UPDATE reservation_orders SET status='CANCELLED', cancel_reason='CUSTOMER',
+                        refund_status='PENDING', pickup_code=NULL
+                    WHERE id=? AND status='PAID'
+                    """, order.id());
+            if (changed != 1) throw new PaymentException("Заказ уже изменился. Обновите страницу.");
+            int counters = db.update("""
+                    UPDATE offers SET sold_portions=sold_portions-?, version=version+1, updated_at=?
+                    WHERE id=? AND sold_portions>=?
+                    """, order.quantity(), Timestamp.from(now), order.offerId(), order.quantity());
+            if (counters != 1) throw new IllegalStateException("Нарушен счетчик проданных порций набора " + order.offerId());
+            audit.log(AuditLog.CUSTOMER_CANCELLED, order.id(), null, customerId,
+                    "Покупатель отменил оплаченный заказ; возврат ожидает обработки");
+        });
+    }
+
     // ------------------------------------------------------------------ начало оплаты
 
     /**

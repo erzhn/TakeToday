@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Возвраты')}"></head>
+<body>
+<div class="admin-shell">
+    <aside th:replace="~{fragments/layout :: adminSidebar('refunds')}"></aside>
+    <main class="admin-main">
+        <div th:replace="~{fragments/layout :: flash}"></div>
+        <div class="admin-top"><div><h1 class="page-title">Возвраты</h1><p class="page-subtitle">Ручная обработка возвратов учебной платёжной службы.</p></div></div>
+        <div class="table-card">
+            <table class="table">
+                <thead><tr><th>Заказ</th><th>Покупатель</th><th>Заведение</th><th>Сумма</th><th>Причина</th><th>Статус</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="refund : ${refunds}">
+                    <td th:text="${refund.title()}">Набор</td>
+                    <td><span th:text="${refund.customerName()}">Покупатель</span><br><span class="muted" th:text="${refund.customerEmail()}">email</span></td>
+                    <td th:text="${refund.establishmentName()}">Заведение</td>
+                    <td th:text="${refund.amount()} + ' сом'">0 сом</td>
+                    <td th:text="${refund.cancelReason()}">CUSTOMER</td>
+                    <td><span class="badge" th:classappend="${refund.refundStatus() == 'COMPLETED' ? 'badge-green' : 'badge-orange'}" th:text="${refund.refundStatus() == 'COMPLETED' ? 'Выполнен' : 'Ожидает обработки'}">Ожидает обработки</span></td>
+                    <td><form th:if="${refund.refundStatus() == 'PENDING'}" th:action="@{/admin/refunds/{id}/complete(id=${refund.id()})}" method="post" class="inline-form"><button type="submit" class="btn btn-sm btn-primary">Оформить возврат</button></form></td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="empty" th:if="${#lists.isEmpty(refunds)}"><h2>Возвратов пока нет</h2></div>
+        </div>
+    </main>
+</div>
+</body>
+</html>
