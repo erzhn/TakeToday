@@ -118,6 +118,16 @@
                         <p class="hint" th:unless="${#fields.hasErrors('phone')}">Необязательно. Поможет заведению связаться с вами по заказу.</p>
                     </div>
 
+                    <div class="field" id="two-factor">
+                        <label class="checkbox" for="twoFactorEnabled" style="color: inherit">
+                            <input type="checkbox" th:field="*{twoFactorEnabled}" aria-describedby="two-factor-hint">
+                            <span>Двухфакторная аутентификация</span>
+                        </label>
+                        <p class="hint" id="two-factor-hint">По желанию: при входе после пароля потребуется код из письма.
+                            Чтобы включить или выключить защиту, измените этот параметр и сохраните изменения.
+                            Подтверждение регистрации и восстановление пароля всегда требуют код.</p>
+                    </div>
+
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary" data-once>
                             <span class="material-symbols-outlined">save</span>Сохранить изменения

@@ -39,9 +39,9 @@ class AuthIntegrationTests {
  @Test void mailFailureRollsBackRegistration()throws Exception{mail.fail=true;postJson("/api/auth/register","{\"email\":\"user@example.com\",\"password\":\"StrongPassword123\",\"name\":\"User\",\"role\":\"CUSTOMER\"}").andExpect(status().isServiceUnavailable());assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM accounts",Integer.class));}
  @Test void resetsPasswordAndRevokesOldSession()throws Exception{String challenge=id(register("CUSTOMER"));var result=verify(challenge,mail.code).andExpect(status().isOk()).andReturn();var session=(MockHttpSession)result.getRequest().getSession(false);db.update("UPDATE auth_challenges SET sent_at=?",java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(61)));String reset=id(postJson("/api/auth/forgot-password","{\"email\":\"user@example.com\"}").andExpect(status().isOk()).andReturn().getResponse().getContentAsString());postJson("/api/auth/reset-password","{\"challengeId\":\""+reset+"\",\"code\":\""+mail.code+"\",\"password\":\"NewPassword123\"}").andExpect(status().isOk());mvc.perform(get("/api/customer/home").session(session)).andExpect(status().isUnauthorized());postJson("/api/auth/login","{\"email\":\"user@example.com\",\"password\":\"StrongPassword123\"}").andExpect(status().isUnauthorized());}
 
- @Test void passwordAloneNeverAuthenticates()throws Exception{String first=id(register("CUSTOMER"));verify(first,mail.code).andExpect(status().isOk());db.update("UPDATE auth_challenges SET sent_at=?",java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(61)));String login=id(postJson("/api/auth/login","{\"email\":\"user@example.com\",\"password\":\"StrongPassword123\"}").andExpect(status().isOk()).andReturn().getResponse().getContentAsString());mvc.perform(get("/api/auth/me")).andExpect(jsonPath("$.role").value("GUEST"));verify(login,mail.code).andExpect(status().isOk());}
+ @Test void enabledTwoFactorRequiresCode()throws Exception{String first=id(register("CUSTOMER"));verify(first,mail.code).andExpect(status().isOk());db.update("UPDATE accounts SET two_factor_enabled=TRUE");db.update("UPDATE auth_challenges SET sent_at=?",java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(61)));String login=id(postJson("/api/auth/login","{\"email\":\"user@example.com\",\"password\":\"StrongPassword123\"}").andExpect(status().isOk()).andReturn().getResponse().getContentAsString());mvc.perform(get("/api/auth/me")).andExpect(jsonPath("$.role").value("GUEST"));verify(login,mail.code).andExpect(status().isOk());}
  @Test void resendInvalidatesOldChallenge()throws Exception{String old=id(register("CUSTOMER"));String oldCode=mail.code;postJson("/api/auth/resend","{\"challengeId\":\""+old+"\"}").andExpect(status().isTooManyRequests());db.update("UPDATE auth_challenges SET sent_at=?",java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(61)));String fresh=id(postJson("/api/auth/resend","{\"challengeId\":\""+old+"\"}").andExpect(status().isOk()).andReturn().getResponse().getContentAsString());verify(old,oldCode).andExpect(status().isBadRequest());verify(fresh,mail.code).andExpect(status().isOk());}
- @Test void logoutAndBlockRevokeAccess()throws Exception{String challenge=id(register("CUSTOMER"));var result=verify(challenge,mail.code).andExpect(status().isOk()).andReturn();var session=(MockHttpSession)result.getRequest().getSession(false);mvc.perform(post("/api/auth/logout").session(session).with(csrf())).andExpect(status().isNoContent());assertTrue(session.isInvalid());db.update("UPDATE auth_challenges SET sent_at=?",java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(61)));String login=id(postJson("/api/auth/login","{\"email\":\"user@example.com\",\"password\":\"StrongPassword123\"}").andExpect(status().isOk()).andReturn().getResponse().getContentAsString());session=(MockHttpSession)verify(login,mail.code).andExpect(status().isOk()).andReturn().getRequest().getSession(false);db.update("UPDATE accounts SET blocked=TRUE");mvc.perform(get("/api/customer/home").session(session)).andExpect(status().isUnauthorized());}
+ @Test void logoutAndBlockRevokeAccess()throws Exception{String challenge=id(register("CUSTOMER"));var result=verify(challenge,mail.code).andExpect(status().isOk()).andReturn();var session=(MockHttpSession)result.getRequest().getSession(false);mvc.perform(post("/api/auth/logout").session(session).with(csrf())).andExpect(status().isNoContent());assertTrue(session.isInvalid());db.update("UPDATE accounts SET two_factor_enabled=TRUE");db.update("UPDATE auth_challenges SET sent_at=?",java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(61)));String login=id(postJson("/api/auth/login","{\"email\":\"user@example.com\",\"password\":\"StrongPassword123\"}").andExpect(status().isOk()).andReturn().getResponse().getContentAsString());session=(MockHttpSession)verify(login,mail.code).andExpect(status().isOk()).andReturn().getRequest().getSession(false);db.update("UPDATE accounts SET blocked=TRUE");mvc.perform(get("/api/customer/home").session(session)).andExpect(status().isUnauthorized());}
  @Test void unverifiedEmailCanBeRegisteredAgain()throws Exception{register("STAFF");db.update("UPDATE auth_challenges SET sent_at=?",java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(61)));
  postJson("/api/auth/register","{\"email\":\"user@example.com\",\"password\":\"OtherPassword123\",\"name\":\"Настоящий владелец\",\"role\":\"CUSTOMER\"}").andExpect(status().isOk());
  assertEquals(1,db.queryForObject("SELECT COUNT(*) FROM accounts",Integer.class));assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM establishments",Integer.class));
@@ -49,6 +49,58 @@ class AuthIntegrationTests {
  @Test void staffContactMustBePhoneOrEmail()throws Exception{postJson("/api/auth/register","{\"email\":\"cafe@example.com\",\"password\":\"StrongPassword123\",\"name\":\"Кафе\",\"role\":\"STAFF\",\"establishmentName\":\"Кафе\",\"address\":\"Бишкек\",\"contact\":\"12345\",\"workingHours\":\"9–18\"}").andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("+996")));
  postJson("/api/auth/register","{\"email\":\"cafe@example.com\",\"password\":\"StrongPassword123\",\"name\":\"Кафе\",\"role\":\"STAFF\",\"establishmentName\":\"Кафе\",\"address\":\"Бишкек\",\"contact\":\"996555341289\",\"workingHours\":\"9–18\"}").andExpect(status().isOk());
  assertEquals("+996 555 341 289",db.queryForObject("SELECT contact FROM establishments",String.class));}
+ @Test void optionalTwoFactorCanBeEnabledAndDisabledInProfile() throws Exception {
+  String registration = id(register("CUSTOMER"));
+  verify(registration, mail.code).andExpect(status().isOk());
+  assertFalse(db.queryForObject("SELECT two_factor_enabled FROM accounts", Boolean.class));
+  String credentials = "{\"email\":\"user@example.com\",\"password\":\"StrongPassword123\"}";
+  // Обычный вход не зависит от отправки почты, даже сразу после регистрации.
+  mail.fail = true;
+  var oldSession = new MockHttpSession();
+  var direct = mvc.perform(post("/api/auth/login").session(oldSession).with(csrf())
+    .contentType("application/json").content(credentials))
+    .andExpect(status().isOk()).andExpect(jsonPath("$.challengeId").doesNotExist())
+    .andExpect(jsonPath("$.role").value("CUSTOMER")).andReturn();
+  assertTrue(oldSession.isInvalid());
+  var session = (MockHttpSession) direct.getRequest().getSession(false);
+  mvc.perform(get("/api/customer/home").session(session)).andExpect(status().isOk());
+  for (int i = 0; i < 11; i++) postJson("/api/auth/login", credentials).andExpect(status().isOk());
+  mvc.perform(post("/profile").session(session).with(csrf()).param("name", "Покупатель")
+    .param("twoFactorEnabled", "true")).andExpect(status().is3xxRedirection());
+  assertTrue(db.queryForObject("SELECT two_factor_enabled FROM accounts", Boolean.class));
+  mvc.perform(get("/profile").session(session)).andExpect(status().isOk())
+    .andExpect(content().string(org.hamcrest.Matchers.matchesPattern(
+      "(?s).*<input(?=[^>]*name=\"twoFactorEnabled\")(?=[^>]*checked=\"checked\")[^>]*>.*")));
+  mail.fail = false;
+  db.update("UPDATE auth_challenges SET sent_at=?", java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(61)));
+  var pending = postJson("/api/auth/login", credentials).andExpect(status().isOk()).andReturn();
+  var pendingSession = (MockHttpSession) pending.getRequest().getSession(false);
+  if (pendingSession != null) mvc.perform(get("/api/customer/home").session(pendingSession)).andExpect(status().isUnauthorized());
+  else mvc.perform(get("/api/customer/home")).andExpect(status().isUnauthorized());
+  String challenge = id(pending.getResponse().getContentAsString());
+  String correct = mail.code;
+  verify(challenge, "000000".equals(correct) ? "000001" : "000000").andExpect(status().isBadRequest());
+  var verified = verify(challenge, correct).andExpect(status().isOk()).andReturn();
+  verify(challenge, correct).andExpect(status().isBadRequest());
+  session = (MockHttpSession) verified.getRequest().getSession(false);
+  mvc.perform(post("/profile").session(session).with(csrf()).param("name", "Покупатель")
+    .param("_twoFactorEnabled", "on")).andExpect(status().is3xxRedirection());
+  assertFalse(db.queryForObject("SELECT two_factor_enabled FROM accounts", Boolean.class));
+  mail.fail = true;
+  postJson("/api/auth/login", credentials).andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CUSTOMER"));
+  db.update("UPDATE accounts SET blocked=TRUE");
+  postJson("/api/auth/login", credentials).andExpect(status().isUnauthorized());
+ }
+
+ @Test void unverifiedAccountStillNeedsRegistrationCode() throws Exception {
+  register("CUSTOMER");
+  db.update("UPDATE auth_challenges SET sent_at=?", java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(61)));
+  var pending = postJson("/api/auth/login", "{\"email\":\"user@example.com\",\"password\":\"StrongPassword123\"}")
+    .andExpect(status().isOk()).andExpect(jsonPath("$.challengeId").exists()).andExpect(jsonPath("$.role").doesNotExist()).andReturn();
+  assertEquals("REGISTER", db.queryForObject("SELECT purpose FROM auth_challenges WHERE consumed=FALSE", String.class));
+  verify(id(pending.getResponse().getContentAsString()), mail.code).andExpect(status().isOk());
+ }
+
  @Test void validationErrorNamesTheField()throws Exception{postJson("/api/auth/register","{\"email\":\"not-an-email\",\"password\":\"short\",\"name\":\"User\",\"role\":\"CUSTOMER\"}").andExpect(status().isBadRequest())
  .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.allOf(org.hamcrest.Matchers.containsString("почту"),org.hamcrest.Matchers.containsString("Пароль"))));}
 }

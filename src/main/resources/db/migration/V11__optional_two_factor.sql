@@ -1,0 +1,2 @@
+ALTER TABLE accounts
+    ADD COLUMN two_factor_enabled BOOLEAN NOT NULL DEFAULT FALSE;
