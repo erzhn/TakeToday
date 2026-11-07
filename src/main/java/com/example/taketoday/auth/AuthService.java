@@ -53,10 +53,14 @@ public class AuthService {
  }
  private boolean blank(String s){return s==null||s.isBlank();}
  private void removeUnverified(UUID id){db.update("DELETE FROM auth_challenges WHERE account_id=?",id);db.update("DELETE FROM establishments WHERE owner_id=?",id);db.update("DELETE FROM accounts WHERE id=? AND verified=FALSE",id);}
- public Challenge login(Login r){password(r.password());String e=email(r.email());throttle(e);var a=byEmail(e);
+ public Object login(Login r){password(r.password());String e=email(r.email());throttle(e);var a=byEmail(e);
  boolean valid=encoder.matches(r.password(),a==null?dummy:(String)a.get("password_hash"));
  if(a==null||!valid||Boolean.TRUE.equals(a.get("blocked")))throw new ApiError(UNAUTHORIZED,"Неверная почта или пароль либо учетная запись заблокирована.");
- return issue((UUID)a.get("id"),e,Boolean.TRUE.equals(a.get("verified"))?"LOGIN":"REGISTER");
+ if(!Boolean.TRUE.equals(a.get("verified")))return issue((UUID)a.get("id"),e,"REGISTER");
+ if(Boolean.TRUE.equals(a.get("two_factor_enabled")))return issue((UUID)a.get("id"),e,"LOGIN");
+ db.update("UPDATE auth_throttle SET attempts=0,window_start=? WHERE email=?",now(),e);
+ db.update("UPDATE auth_challenges SET consumed=TRUE WHERE account_id=? AND purpose='LOGIN'",a.get("id"));
+ return user(a);
  }
  public Challenge forgot(EmailRequest r){String e=email(r.email());throttle(e);var a=byEmail(e);
  if(a!=null&&!Boolean.TRUE.equals(a.get("blocked")))return issue((UUID)a.get("id"),e,"RESET");

@@ -32,14 +32,17 @@ public class ProfileService {
         ProfileForm form = new ProfileForm();
         form.setName(account.getName());
         form.setPhone(account.getPhone());
+        form.setTwoFactorEnabled(db.queryForObject(
+                "SELECT two_factor_enabled FROM accounts WHERE id = ?", Boolean.class, account.getId()));
         return form;
     }
 
     @Transactional
     public void updateProfile(UUID accountId, ProfileForm form) {
-        db.update("UPDATE accounts SET name = ?, phone = ? WHERE id = ?",
+        db.update("UPDATE accounts SET name = ?, phone = ?, two_factor_enabled = ? WHERE id = ?",
                 form.getName().trim().replaceAll("\\s+", " "),
                 ValidationRules.normalizePhone(form.getPhone()),
+                form.isTwoFactorEnabled(),
                 accountId);
     }
 

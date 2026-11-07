@@ -17,13 +17,20 @@ public class AuthController {
  public AuthController(AuthService service,SecurityContextRepository repository){this.service=service;this.repository=repository;}
  @GetMapping("/csrf") Map<String,String> csrf(CsrfToken token){return Map.of("token",token.getToken(),"headerName",token.getHeaderName());}
  @PostMapping("/register") Challenge register(@Valid @RequestBody Registration r){return service.register(r);}
- @PostMapping("/login") Challenge login(@Valid @RequestBody Login r){return service.login(r);}
+ @PostMapping("/login") Object login(@Valid @RequestBody Login r,HttpServletRequest request,HttpServletResponse response){
+  Object result=service.login(r);
+  if(result instanceof User user) authenticate(user,request,response);
+  return result;
+ }
  @PostMapping("/forgot-password") Challenge forgot(@Valid @RequestBody EmailRequest r){return service.forgot(r);}
  @PostMapping("/resend") Challenge resend(@Valid @RequestBody Resend r){return service.resend(r.challengeId());}
  @PostMapping("/verify") User verify(@Valid @RequestBody Verification r,HttpServletRequest request,HttpServletResponse response){
- User u=service.complete(r);if(request.getSession(false)!=null)request.getSession(false).invalidate();request.getSession(true);
- var context=SecurityContextHolder.createEmptyContext();context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(u,null,List.of(new SimpleGrantedAuthority("ROLE_"+u.role()))));
- SecurityContextHolder.setContext(context);repository.saveContext(context,request,response);return u;
+ User u=service.complete(r);authenticate(u,request,response);return u;
+ }
+ private void authenticate(User u,HttpServletRequest request,HttpServletResponse response){
+  if(request.getSession(false)!=null)request.getSession(false).invalidate();request.getSession(true);
+  var context=SecurityContextHolder.createEmptyContext();context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(u,null,List.of(new SimpleGrantedAuthority("ROLE_"+u.role()))));
+  SecurityContextHolder.setContext(context);repository.saveContext(context,request,response);
  }
  @PostMapping("/reset-password") Map<String,String> reset(@Valid @RequestBody Reset r){service.reset(r);return Map.of("message","Пароль изменен. Войдите с новым паролем.");}
  @GetMapping("/me") Object me(Authentication auth){if(auth==null||!(auth.getPrincipal() instanceof User u))return Map.of("role","GUEST","name","Гость");return service.current(u.id());}
